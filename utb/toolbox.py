@@ -1,6 +1,9 @@
+from collections import OrderedDict
+import json
 import os
 import yaml
 
+from .book import Book
 from .console import Console
 
 class Toolbox:
@@ -14,6 +17,17 @@ class Toolbox:
             except yaml.YAMLError:
                 raise
         self.console = Console(self)
+        self.load_books()
+
+    def load_books(self):
+        self.books = OrderedDict()
+        for index in range(self.config.get('number-books', 4)):
+            filename = os.path.join(self.config.get('data-dir', '.data'),
+                                    'book-%d.json' % (index + 1))
+            if os.path.isfile(filename):
+                with open(filename) as stream:
+                    data = json.loads(stream.read())
+                    self.books[index + 1] = Book.parse(index + 1, data)
 
     def run(self):
         self.console.run()

@@ -17,11 +17,10 @@ class Console:
     def write(self, *args, color=None, bold=False, backcolor=None, end='\n',
               sep=' '):
         if (color or bold) and self.accept_color:
-            print('\033[%s%s3%dm' % (
-                    '1;' if bold else '',
-                    ('4%d;' % color) if backcolor else '',
-                    color or self.WHITE,
-                    ), end='')
+            print('\033[%s%s3%dm' % ('1;' if bold else '',
+                                     ('4%d;' % color) if backcolor else '',
+                                     color or self.WHITE),
+                  end='')
             print(*args, sep=sep, end='')
             print('\033[0m', end=end)
         else:
@@ -29,7 +28,6 @@ class Console:
 
     def run(self):
         self.write(COPYRIGHT)
-        self.write('Look, does it accept color?', bold=True)
         self.write(self.toolbox.config)
         return
 
