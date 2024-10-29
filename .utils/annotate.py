@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 
+# utb: UVa Online Judge toolbox
+# Copyright (C) 2024  Daniel Donadon
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import sys
 from pathlib import Path
@@ -16,9 +32,9 @@ def load_file(filename):
 def annotate(filename, header):
     content = load_file(filename)
     if header not in content:
-        # with open(filename, 'w') as stream:
-        #     stream.write(header)
-        #     stream.write(content)
+        with open(filename, 'w') as stream:
+            stream.write(header)
+            stream.write(content)
         print(filename)
 
 
