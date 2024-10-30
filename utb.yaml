@@ -1,3 +1,4 @@
 accept-color: true
 data-dir: .data
 number-books: 4
+debug: true

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+import inspect
 import json
 import os
 import yaml
@@ -35,16 +36,93 @@ class Toolbox:
                 raise
         self.console = Console(self)
         self.load_books()
+        self.load_commands()
 
     def load_books(self):
-        self.books = OrderedDict()
+        self.books = []
         for index in range(self.config.get('number-books', 4)):
             filename = os.path.join(self.config.get('data-dir', '.data'),
                                     'book-%d.json' % (index + 1))
             if os.path.isfile(filename):
                 with open(filename) as stream:
                     data = json.loads(stream.read())
-                    self.books[index + 1] = Book.parse(index + 1, data)
+                    self.books.append(Book(data, index + 1))
+        self.current_book = self.books[-1]
+
+    def load_commands(self):
+        members = inspect.getmembers(self, lambda obj: inspect.ismethod(obj))
+        prefix = 'command_'
+        self.commands = {name[len(prefix):]: method for name, method in members
+                         if name.startswith('command_')}
+
+    def get_unique_command(self, prefix):
+        commands = [k for k in self.commands if k.startswith(prefix)]
+        if not commands:
+            raise Exception('command not found: %s' % prefix)
+        if len(commands) > 1:
+            raise Exception('ambiguous command: %s' % ', '.join(commands))
+        return commands[0]
 
     def run(self):
         self.console.run()
+
+    def command_quit(self, *args):
+        """
+        Quit the interactive shell.
+        """
+        self.console.quit = True
+
+    def command_help(self, *args):
+        """
+        See the help entry for a command. To see a list of all available
+        commands, type the command without argument.
+        """
+        if args:
+            command = self.get_unique_command(args[0])
+            doc = self.commands[command].__doc__
+            doc = '\n'.join(line.strip() for line in doc.split('\n')[1:-1])
+            self.console.write(command, bold=True)
+            self.console.write(doc)
+        else:
+            self.console.write('List of available commands')
+            for name in sorted(self.commands.keys()):
+                self.console.write('%-10s' % name, bold=True, end='')
+                doc = self.commands[name].__doc__.split('.')[0]
+                self.console.write(doc.strip().lower())
+
+    def command_list(self, *args):
+        """
+        List all chapters of the current book. To see the divisions of a
+        chapter, type the chapter or the section entry, separating each
+        number by space or dot. Example:
+            >>> list 2.3.1
+        """
+        data = self.current_book
+        if len(args) == 1:
+            args = args[0].split('.')
+        for arg in args:
+            try:
+                data = data.content[int(arg) - 1]
+            except:
+                raise Exception('invalid argument: %s' % '.'.join(args))
+        data.print_content(self.console, depth=2)
+
+    def command_book(self, *args):
+        """
+        Select which book will be used. To list all books available,
+        type the command without argument. To select a book, type its
+        number. To see which book is currently used, type '?'. Example:
+            >>> book 3
+        """
+        if args:
+            if args[0] == '?':
+                self.console.write(self.current_book.name, 'is currently selected')
+                return
+            try:
+                self.current_book = self.books[int(args[0]) - 1]
+                self.console.write(self.current_book.name, 'selected')
+            except:
+                raise Exception('invalid argument: %s' % args[0])
+        else:
+            for book in self.books:
+                book.print_content(self.console, depth=1)

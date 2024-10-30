@@ -14,20 +14,61 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from .utils import to_roman
+
 class Chapter:
 
-    def __init__(self, name, parent, content=[], index=0):
-        self.name = name
-        self.chapter = parent if isinstance(parent, Chapter) else None
-        self.book = self.chapter.book if self.chapter else parent
-        self.content = content
+    def __init__(self, content, parent=None, index=0):
+        self.parent = parent
         self.index = index
+        if isinstance(content, (list, tuple)):
+            self.name = content[0]
+            self.content = content[1:]
+        else:
+            assert 'title' in content and 'arr' in content
+            self.name = content['title']
+            self.content = []
+            for index, obj in enumerate(content['arr']):
+                self.content.append(Chapter(obj, self, index + 1))
 
     def __str__(self):
-        parent = str(self.chapter) if self.chapter else str(self.book)
-        name = (('%d. ' % self.index) if self.index else '') + self.name
-        name = name[:19] + '…' if len(name) >= 20 else name
-        return '%s > %s' % (parent, name)
+        return '%s %s' % (self.get_full_index(), self.name)
+
+    def get_full_index(self):
+        if not self.index or not self.parent:
+            return ''
+        parent_index = self.parent.get_full_index()
+        return ('%s.' % parent_index if parent_index else '') + str(self.index)
+
+    def print_name(self, console, with_parent=False, width=80, bold=False):
+        index = self.get_full_index()
+        available = width - len(index)
+        if with_parent and self.parent:
+            available -= 3 # separator
+            available -= self.parent.print_name(
+                    console, True, available - len(self.name) - 1, bold)
+            console.write(' > ', end='')
+        if index:
+            console.write(index, bold=bold, end='')
+        if available > len(self.name):
+            console.write(' %s' % self.name, bold=bold, end='')
+            available -= len(self.name)
+        elif available > 2:
+            console.write(' %s…' % self.name[:available - 2], bold=bold, end='')
+            available = 0
+        return width - available
+
+    def print_content(self, console, indent=0, depth=0):
+        console.write('  ' * indent, end='')
+        self.print_name(console, with_parent=indent == 0, bold=indent == 0,
+                        width=60)
+        console.write()
+        if depth > 0:
+            for obj in self.content:
+                if isinstance(obj, Chapter):
+                    obj.print_content(console, indent + 1, depth - 1)
+                else:
+                    console.write(obj)
 
     def get_problems(self):
         problems = []
@@ -38,35 +79,17 @@ class Chapter:
                 problems.append(obj)
         return problems
 
-    @classmethod
-    def parse(cls, parent, data, index=0):
-        if isinstance(data, (list, tuple)):
-            chapter = cls(data[0], parent, data[1:])
-        else:
-            assert 'title' in data and 'arr' in data
-            chapter = cls(data['title'], parent, index=index)
-            for obj in data['arr']:
-                chapter.content.append(cls.parse(chapter, obj))
-        return chapter
 
+class Book(Chapter):
 
-class Book:
-
-    def __init__(self, number):
-        self.number = number
-        self.content = []
+    def __init__(self, content, index):
+        super().__init__(['Book ' + to_roman(index)])
+        for index, obj in enumerate(content):
+            self.content.append(Chapter(obj, self, index + 1))
 
     def __str__(self):
-        return 'Book %d' % self.number
+        return self.name
 
-    def get_problems(self):
-        problems = []
-        for chapter in self.content:
-            problems += chapter.get_problems()
-        return problems
-
-    @classmethod
-    def parse(cls, number, data):
-        book = cls(number)
-        for index, obj in enumerate(data):
-            book.content.append(Chapter.parse(book, obj, index + 1))
+    def print_name(self, console, with_parent=False, width=80, bold=False):
+        console.write(self.name, bold=bold, end='')
+        return len(self.name)
