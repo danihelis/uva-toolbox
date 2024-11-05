@@ -22,6 +22,7 @@ import yaml
 
 from .book import Book
 from .console import Console
+from .problem import ProblemSet
 
 
 class Toolbox:
@@ -36,6 +37,7 @@ class Toolbox:
                 raise
         self.console = Console(self)
         self.load_books()
+        self.load_problems()
         self.load_commands()
 
     def load_books(self):
@@ -48,6 +50,15 @@ class Toolbox:
                     data = json.loads(stream.read())
                     self.books.append(Book(data, index + 1))
         self.current_book = self.books[-1]
+
+    def load_problems(self):
+        filename = os.path.join(self.config.get('data-dir', '.data'),
+                                'problemset.json')
+        data = json.load(open(filename))
+        if os.path.isfile(filename):
+            self.problemset = ProblemSet(data, self.books)
+        else:
+            self.problemset = None
 
     def load_commands(self):
         members = inspect.getmembers(self, lambda obj: inspect.ismethod(obj))
@@ -111,18 +122,19 @@ class Toolbox:
         """
         Select which book will be used. To list all books available,
         type the command without argument. To select a book, type its
-        number. To see which book is currently used, type '?'. Example:
+        number. To see which book is currently selected, type `?`.
+        Example:
             >>> book 3
         """
-        if args:
-            if args[0] == '?':
-                self.console.write(self.current_book.name, 'is currently selected')
-                return
-            try:
-                self.current_book = self.books[int(args[0]) - 1]
-                self.console.write(self.current_book.name, 'selected')
-            except:
-                raise Exception('invalid argument: %s' % args[0])
-        else:
+        if not args:
             for book in self.books:
                 book.print_content(self.console, depth=1)
+            return
+        if args[0] == '?':
+            self.console.write(self.current_book.name, 'is currently selected')
+            return
+        try:
+            self.current_book = self.books[int(args[0]) - 1]
+            self.console.write(self.current_book.name, 'selected')
+        except:
+            raise Exception('invalid argument: %s' % args[0])

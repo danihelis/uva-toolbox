@@ -21,6 +21,7 @@ class Chapter:
     def __init__(self, content, parent=None, index=0):
         self.parent = parent
         self.index = index
+        self.problems = []
         if isinstance(content, (list, tuple)):
             self.name = content[0]
             self.content = content[1:]
@@ -68,16 +69,25 @@ class Chapter:
                 if isinstance(obj, Chapter):
                     obj.print_content(console, indent + 1, depth - 1)
                 else:
-                    console.write(obj)
+                    problem = self.get_problem(obj)
+                    problem.print(console, short=True, star=obj < 0)
 
-    def get_problems(self):
-        problems = []
+    def get_problem(self, number):
+        for problem in self.problems:
+            if problem.number == abs(number):
+                return problem
+        return None
+
+    def set_problems(self, problemset):
+        self.problems = []
         for obj in self.content:
             if isinstance(obj, Chapter):
-                problems += obj.get_problems()
+                self.problems += obj.set_problems(problemset)
             else:
-                problems.append(obj)
-        return problems
+                problem = problemset.list[abs(obj)]
+                problem.chapters.append((self, obj < 0))
+                self.problems.append(problem)
+        return self.problems
 
 
 class Book(Chapter):

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os, sys, json
+import traceback
 
 COPYRIGHT = """utb (UVa Online Judge toolbox)
 Copyright (C) 2024  Daniel Donadon
@@ -41,6 +41,10 @@ class Console:
         else:
             print(*args, sep=sep, end=end)
 
+    def print(self, *args, bold=False, inv=False, end='', sep=' '):
+        self.write(*args, bold=bold, color=self.BLACK if inv else None,
+                   backcolor=self.WHITE if inv else None, end=end, sep=sep)
+
     def execute(self, line):
         argv = line.split()
         if not argv:
@@ -55,7 +59,7 @@ class Console:
                 self.write(command, end=': ')
             self.write(str(e))
             if command and self.toolbox.config.get('debug', False):
-                import traceback; traceback.print_exc()
+                traceback.print_exc()
 
     def run(self):
         self.quit = False
@@ -69,12 +73,10 @@ class Console:
         prompt = ' utb '
         while not self.quit:
             accent = '░▒▓'
-            self.write(prompt + accent, color=self.BLACK, backcolor=self.WHITE,
-                       end=' ')
+            self.print(prompt + accent, inv=True, end=' ')
             try:
                 line = input().strip()
                 self.execute(line)
             except (EOFError, KeyboardInterrupt):
                 self.write()
                 self.quit = True
-        return
