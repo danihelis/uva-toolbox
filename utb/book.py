@@ -47,23 +47,28 @@ class Chapter:
         parent_index = self.parent.get_full_index()
         return ('%s.' % parent_index if parent_index else '') + str(self.index)
 
-    def print_name(self, console, with_parent=False, width=80, bold=False):
+    def print_name(self, console, with_parent=False, with_index=True, width=80,
+                   bold=False):
         index = self.get_full_index()
-        available = width - len(index)
+        used = 0
+        available = width - len(self.name)
+        if with_index:
+            available -= len(index) + 1
         if with_parent and self.parent:
             available -= 3 # separator
-            available -= self.parent.print_name(
-                    console, True, available - len(self.name) - 1, bold)
+            used = self.parent.print_name(console, True, False, available, bold)
             console.print(' > ')
-        if index:
-            console.print(index, bold=bold)
-        if available > len(self.name):
-            console.print(' %s' % self.name, bold=bold)
-            available -= len(self.name) + 1
-        elif available > 2:
-            console.print(' %s…' % self.name[:available - 1], bold=bold)
-            available = 0
-        return width - available
+            used += 3
+        if index and with_index:
+            console.print(index, bold=bold, end=' ')
+            used += len(index) + 1
+        if used + len(self.name) <= width:
+            console.print('%s' % self.name, bold=bold)
+            used += len(self.name)
+        else:
+            console.print('%s…' % self.name[:max(0, width - 1 - used)], bold=bold)
+            used += 1 + max(0, width - 1 - used)
+        return used
 
     def print_content(self, console, indent=0, depth=0):
         console.print('  ' * indent)
@@ -71,7 +76,7 @@ class Chapter:
         span -= self.print_name(console, with_parent=indent == 0,
                                 bold=indent == 0, width=span)
         if span:
-            console.print('', ('·' if depth == 1 else ' ') * span)
+            console.print('', ('·' if depth == 1 else ' ') * (span - 1))
         done = 0
         total = len(self.problems)
         console.print('%4d' % done, bold=True)
@@ -119,6 +124,7 @@ class Book(Chapter):
     def book(self):
         return self.index
 
-    def print_name(self, console, with_parent=False, width=80, bold=False):
+    def print_name(self, console, with_parent=False, with_index=True,
+                   width=80, bold=False):
         console.write(self.name, bold=bold, end='')
         return len(self.name)
