@@ -35,6 +35,12 @@ class Chapter:
     def __str__(self):
         return '%s %s' % (self.get_full_index(), self.name)
 
+    @property
+    def book(self):
+        if self.parent:
+            return self.parent.book
+        return None
+
     def get_full_index(self):
         if not self.index or not self.parent:
             return ''
@@ -48,22 +54,30 @@ class Chapter:
             available -= 3 # separator
             available -= self.parent.print_name(
                     console, True, available - len(self.name) - 1, bold)
-            console.write(' > ', end='')
+            console.print(' > ')
         if index:
-            console.write(index, bold=bold, end='')
+            console.print(index, bold=bold)
         if available > len(self.name):
-            console.write(' %s' % self.name, bold=bold, end='')
-            available -= len(self.name)
+            console.print(' %s' % self.name, bold=bold)
+            available -= len(self.name) + 1
         elif available > 2:
-            console.write(' %s…' % self.name[:available - 2], bold=bold, end='')
+            console.print(' %s…' % self.name[:available - 1], bold=bold)
             available = 0
         return width - available
 
     def print_content(self, console, indent=0, depth=0):
-        console.write('  ' * indent, end='')
-        self.print_name(console, with_parent=indent == 0, bold=indent == 0,
-                        width=60)
-        console.write()
+        console.print('  ' * indent)
+        span = 60 - 2 * indent
+        span -= self.print_name(console, with_parent=indent == 0,
+                                bold=indent == 0, width=span)
+        if span:
+            console.print('', ('·' if depth == 1 else ' ') * span)
+        done = 0
+        total = len(self.problems)
+        console.print('%4d' % done, bold=True)
+        console.print('/%-4d ' % total)
+        console.print('⁚' * 6)
+        console.print('%3d%%' % 0, bold=True, end='\n')
         if depth > 0:
             for obj in self.content:
                 if isinstance(obj, Chapter):
@@ -93,12 +107,17 @@ class Chapter:
 class Book(Chapter):
 
     def __init__(self, content, index):
+        self.index = index
         super().__init__(['Book ' + to_roman(index)])
         for index, obj in enumerate(content):
             self.content.append(Chapter(obj, self, index + 1))
 
     def __str__(self):
         return self.name
+
+    @property
+    def book(self):
+        return self.index
 
     def print_name(self, console, with_parent=False, width=80, bold=False):
         console.write(self.name, bold=bold, end='')

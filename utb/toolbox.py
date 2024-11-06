@@ -138,3 +138,17 @@ class Toolbox:
             self.console.write(self.current_book.name, 'selected')
         except:
             raise Exception('invalid argument: %s' % args[0])
+
+    def command_info(self, *args):
+        """
+        Show information about a problem. To show information about the
+        current selected problem, type the comment without argument.
+        To show information about a specific problem, type its number.
+        To show information about the last problem listed, type `-`.
+        """
+        if args:
+            number = 100 if args[0] == '-' else int(args[0])
+        else:
+            number = 100
+        problem = self.problemset.list[number]
+        problem.print(self.console)

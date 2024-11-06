@@ -15,7 +15,7 @@ class Problem:
         submissions['er'] = sum(data[i] for i in list(range(10, 14)) + [15])
         Submission = namedtuple('submission', submissions.keys())
         self.submissions = Submission(**submissions)
-        self.total_submissions = sum(self.submissions)
+        self.total_subs = sum(self.submissions)
         self.chapters = []
 
     @property
@@ -26,75 +26,46 @@ class Problem:
     def special(self):
         return self.type != 1
 
-    def print(self, console, short=False, indent=0, star=False):
-        console.print('%6d' % self.number, bold=True)
-        console.print('!' if self.special else ' ', end=' ')
-        if True:
-            console.print('▐', bold=True)
-            console.print('%s' % 'AC', inv=True)
-            console.print('▌', bold=True, end=' ')
-        if star:
-            console.print('*', bold=True, end=' ')
-        console.write(self.name)
-        return
-
+    def print(self, console, short=False, star=False):
         if not short:
-            console.write('Volume', to_roman(self.volume))
-            volume = 'Volume ' + roman_number(self.info['number'] // 100)
-            if output == sys.stdout:
-                print(c('B', volume))
+            console.write('Volume', to_roman(self.volume), bold=True)
+        console.print('%6d' % self.number, bold=True, end=' ')
+        if short:
+            if not True:
+                console.print(' ' * 3)
             else:
-                print(volume, file=output)
-        maxsize = 64 - indent
-        title = self.info['title']
-        if len(title) >= maxsize:
-            title = title[:maxsize - 3] + '... '
-            ldots = ''
-        else:
-            ldots = (' ' if len(title) % 2 != 0 else '') + \
-                     ' .' * ((maxsize - len(title)) // 2) + ' '
-        status, color = Problem.STATUS[self.info['status']]
-        special = self.info['type'] != 1
-        number = '%5d' % self.info['number']
-        if output == sys.stdout:
-            status = c(color, status)
-            number = c('W', number)
-            ldots = c('b', ldots)
-        print(' ' * indent, number, '! ' if special else '  ', title, ldots,
-                '%02d' % self.info['level'], '  ', status, sep='', file=output)
-        if not short:
-            print('Time limit:', c('W', '%0.3fs' % \
-                    (self.info['limit'] / 1000)), end='  ')
-            print('Best time:', c('W', '%0.3fs' % \
-                    (self.info['best'] / 1000)), end='  ')
-            if 'time' in self.info:
-                print('Your time:', c('W', '%0.3fs' % \
-                        (self.info['time'] / 1000)), end='  ')
-                print('Rank:', c('W', self.info['rank']), end='')
-            print()
-            print('Distinct solutions:', c('W', self.info['dacu']), end='  ')
-            entries = [('AC', 'G', 'AC'), ('PE', 'Y', 'PE'),
-                       ('WA', 'R', 'WA'), ('TL', 'P', 'TL'),
-                       ('E', 'W', 'errors')]
-            for label, color, key in entries:
-                print(label + ':', c(color, '%0.1f%%' % \
-                    (self.info[key] / self.info['subs'] * 100)), end='  ')
-            print()
-            if not self.info['halim']:
-                print("The problem is not part of Halim's exercises",
-                      file=output)
-            else:
-                for chapter in self.info['halim']:
-                    tokens = chapter.split()
-                    extra = str()
-                    if '.' in tokens[0]:
-                        name = c('B', tokens[0]) + ' ' + ' '.join(tokens[1:])
-                    else:
-                        name = c('B', chapter)
-                        extra = c('W', ' *') if self.info['starred'] else ''
-                    print(' ' * indent, name, extra, sep='', file=output)
-                    indent += 2
-
+                console.print('▐', bold=True)
+                console.print('%s' % 'A', inv=True)
+                console.print('▌', bold=True)
+            console.print('*' if star else ' ', bold=True, end=' ')
+        console.print(self.name)
+        if short:
+            console.write()
+            return
+        console.write()
+        info = [('Time limit', '%.0fs' % (self.time_limit / 1000)),
+                ('Best time', '%0.3fs' % (self.best_time / 1000))]
+        # TODO add personal marks
+        for index, (label, value) in enumerate(info):
+            if index:
+                console.print('  ')
+            console.print(label, end=' ')
+            console.print(value, bold=True)
+        console.write()
+        info = [('Distinct solutions', str(self.dacu))] + [
+                (key.upper(), '%.1f%%' % (
+                        100 * getattr(self.submissions, key) / self.total_subs))
+                for key in ('ac', 'pe', 'wa', 'tl', 'er')]
+        for index, (label, value) in enumerate(info):
+            if index:
+                console.print('  ')
+            console.print(label, end=' ')
+            console.print(value, bold=True)
+        console.write()
+        for chapter, star in sorted(self.chapters, key=lambda t: t[0].book):
+            console.print('*' if star else ' ', bold=True, end=' ')
+            chapter.print_name(console, with_parent=True, width=78)
+            console.write()
 
 class ProblemSet:
 
