@@ -1,18 +1,22 @@
 from collections import namedtuple
 import json
+import math
 
 from .utils import to_roman
 
 class Problem:
+    DIFFICULTY = [
+        'Very easy', 'Easy', 'Medium-Easy', 'Medium', 'Medium-Hard',
+        'Hard', 'Very Hard']
 
     def __init__(self, data):
         fields = {'id': 0, 'number': 1, 'name': 2, 'dacu': 3, 'best_time': 4,
                   'time_limit': 19, 'type': 20}
         self.__dict__.update({field: data[index]
                               for field, index in fields.items()})
-        fields = {'tl': 14, 'wa': 16, 'pe': 17, 'ac': 18}
+        fields = {'tl': 14, 'ml': 15, 'wa': 16, 'pe': 17, 'ac': 18}
         submissions = {field: data[index] for field, index in fields.items()}
-        submissions['er'] = sum(data[i] for i in list(range(10, 14)) + [15])
+        submissions['er'] = sum(data[i] for i in range(10, 14))
         Submission = namedtuple('submission', submissions.keys())
         self.submissions = Submission(**submissions)
         self.total_subs = sum(self.submissions)
@@ -26,23 +30,27 @@ class Problem:
     def special(self):
         return self.type != 1
 
+    def percentage(self, key):
+        return getattr(self.submissions, key) * 100 / max(1, self.total_subs)
+
     def print(self, console, short=False, star=False):
         if not short:
             console.write('Volume', to_roman(self.volume), bold=True)
         console.print('%6d' % self.number, bold=True, end=' ')
         if short:
-            if not True:
+            # TODO add personal submission status
+            if True:
                 console.print(' ' * 3)
             else:
                 console.print('▐', bold=True)
                 console.print('%s' % 'A', inv=True)
                 console.print('▌', bold=True)
             console.print('*' if star else ' ', bold=True, end=' ')
-        console.print(self.name)
-        if short:
-            console.write()
+            width = 52 - len(self.name)
+            console.print(self.name, end=' ' * width)
+            console.write(self.DIFFICULTY[self.level])
             return
-        console.write()
+        console.write(self.name)
         info = [('Time limit', '%.0fs' % (self.time_limit / 1000)),
                 ('Best time', '%0.3fs' % (self.best_time / 1000))]
         # TODO add personal marks
@@ -52,13 +60,25 @@ class Problem:
             console.print(label, end=' ')
             console.print(value, bold=True)
         console.write()
-        info = [('Distinct solutions', str(self.dacu))] + [
-                (key.upper(), '%.1f%%' % (
-                        100 * getattr(self.submissions, key) / self.total_subs))
-                for key in ('ac', 'pe', 'wa', 'tl', 'er')]
-        for index, (label, value) in enumerate(info):
-            if index:
-                console.print('  ')
+        info = [('Distinct solutions', str(self.dacu)),
+                ('  AC', '%.1f%%' % (self.percentage('ac')
+                                     + self.percentage('pe'))),
+                ('  (PE', '%.0f%%' % self.percentage('pe')),
+                (')  WA', '%.0f%%' % self.percentage('wa')),
+                ('  TL', '%.0f%%' % self.percentage('tl')),
+                ('  ML', '%.0f%%' % self.percentage('ml')),
+                ('  ER', '%.0f%%' % self.percentage('er'))]
+        for label, value in info:
+            console.print(label, end=' ')
+            console.print(value, bold=True)
+        console.write()
+        info = [('Expectation  AC', '%.1f%%' % (100 * self.expected.ac)),
+                (' (', '%+.0f%% ' % self.delta),
+                (')  WA', '%.0f%%' % (100 * self.expected.wa)),
+                ('  TL', '%.0f%%' % (100 * self.expected.tl)),
+                ('  ML', '%.0f%%' % (100 * self.expected.ml)),
+                ('  Level', self.DIFFICULTY[self.level])]
+        for label, value in info:
             console.print(label, end=' ')
             console.print(value, bold=True)
         console.write()
@@ -66,6 +86,7 @@ class Problem:
             console.print('*' if star else ' ', bold=True, end=' ')
             chapter.print_name(console, with_parent=True, width=78)
             console.write()
+
 
 class ProblemSet:
 
@@ -80,3 +101,36 @@ class ProblemSet:
             self.volumes.setdefault(problem.volume, []).append(problem)
         for book in books:
             book.set_problems(self)
+        avg_ac, avg_wa, avg_tl, avg_ml = 0, 0, 0, 0
+        for p in self.problems.values():
+            p.non_errors = p.total_subs - p.submissions.er
+            avg_ac += (p.submissions.ac + p.submissions.pe) / max(1, p.non_errors)
+            avg_wa += p.submissions.wa / max(1, p.non_errors)
+            avg_tl += p.submissions.tl / max(1, p.non_errors)
+            avg_ml += p.submissions.tl / max(1, p.non_errors)
+        avg_ac /= len(self.problems)
+        avg_wa /= len(self.problems)
+        avg_tl /= len(self.problems)
+        avg_ml /= len(self.problems)
+        counter = {}
+        for p in self.problems.values():
+            factor = 1 - p.submissions.er / max(1, p.total_subs)
+            p.expected = namedtuple('Expected', ['ac', 'wa', 'tl', 'ml'])(
+                    *(avg * factor for avg in [avg_ac, avg_wa, avg_tl, avg_ml]))
+            p.delta = round(p.percentage('ac') + p.percentage('pe')
+                            - 100 * p.expected.ac)
+            if p.delta not in counter:
+                counter[p.delta] = 0
+            counter[p.delta] += 1
+        bucket_size = len(self.problems) / len(Problem.DIFFICULTY)
+        bucket_count = 0
+        bucket = 0
+        level = {}
+        for delta in sorted(counter, reverse=True):
+            level[delta] = bucket
+            bucket_count += counter[delta]
+            if bucket_count > bucket_size:
+                bucket_count -= bucket_size
+                bucket += 1
+        for p in self.problems.values():
+            p.level = level[p.delta]
