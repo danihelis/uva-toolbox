@@ -6,7 +6,7 @@ from .utils import to_roman
 
 class Problem:
     DIFFICULTY = [
-        'Very easy', 'Easy', 'Medium-Easy', 'Medium', 'Medium-Hard',
+        'Very Easy', 'Easy', 'Easy-Medium', 'Medium', 'Medium-Hard',
         'Hard', 'Very Hard']
 
     def __init__(self, data):
@@ -33,6 +33,11 @@ class Problem:
     def percentage(self, key):
         return getattr(self.submissions, key) * 100 / max(1, self.total_subs)
 
+    @property
+    def popularity(self):
+        # return chr(ord('A') + self.popularity_level)
+        return chr(ord('A') + 10 - min(10, int(math.log(max(1, self.dacu)))))
+
     def print(self, console, short=False, star=False):
         if not short:
             console.write('Volume', to_roman(self.volume), bold=True)
@@ -46,8 +51,9 @@ class Problem:
                 console.print('%s' % 'A', inv=True)
                 console.print('▌', bold=True)
             console.print('*' if star else ' ', bold=True, end=' ')
-            width = 52 - len(self.name)
+            width = 51 - len(self.name)
             console.print(self.name, end=' ' * width)
+            console.print(self.popularity, end=' ', bold=True)
             console.write(self.DIFFICULTY[self.level])
             return
         console.write(self.name)
@@ -60,26 +66,27 @@ class Problem:
             console.print(label, end=' ')
             console.print(value, bold=True)
         console.write()
-        info = [('Distinct solutions', str(self.dacu)),
-                ('  AC', '%.1f%%' % (self.percentage('ac')
+        info = [('Distinct solutions ', str(self.dacu)),
+                (' (', self.popularity),
+                (')  AC ', '%.1f%%' % (self.percentage('ac')
                                      + self.percentage('pe'))),
-                ('  (PE', '%.0f%%' % self.percentage('pe')),
-                (')  WA', '%.0f%%' % self.percentage('wa')),
-                ('  TL', '%.0f%%' % self.percentage('tl')),
-                ('  ML', '%.0f%%' % self.percentage('ml')),
-                ('  ER', '%.0f%%' % self.percentage('er'))]
+                ('  (PE ', '%.0f%%' % self.percentage('pe')),
+                (')  WA ', '%.0f%%' % self.percentage('wa')),
+                ('  TL ', '%.0f%%' % self.percentage('tl')),
+                ('  ML ', '%.0f%%' % self.percentage('ml')),
+                ('  ER ', '%.0f%%' % self.percentage('er'))]
         for label, value in info:
-            console.print(label, end=' ')
+            console.print(label)
             console.print(value, bold=True)
         console.write()
-        info = [('Expectation  AC', '%.1f%%' % (100 * self.expected.ac)),
-                (' (', '%+.0f%% ' % self.delta),
-                (')  WA', '%.0f%%' % (100 * self.expected.wa)),
-                ('  TL', '%.0f%%' % (100 * self.expected.tl)),
-                ('  ML', '%.0f%%' % (100 * self.expected.ml)),
-                ('  Level', self.DIFFICULTY[self.level])]
+        info = [('Expectation  AC ', '%.1f%%' % (100 * self.expected.ac)),
+                (' (', '%+.0f%%' % self.delta),
+                (')  WA ', '%.0f%%' % (100 * self.expected.wa)),
+                ('  TL ', '%.0f%%' % (100 * self.expected.tl)),
+                ('  ML ', '%.0f%%' % (100 * self.expected.ml)),
+                ('  Level ', self.DIFFICULTY[self.level])]
         for label, value in info:
-            console.print(label, end=' ')
+            console.print(label)
             console.print(value, bold=True)
         console.write()
         for chapter, star in sorted(self.chapters, key=lambda t: t[0].book):
@@ -123,8 +130,7 @@ class ProblemSet:
                 counter[p.delta] = 0
             counter[p.delta] += 1
         bucket_size = len(self.problems) / len(Problem.DIFFICULTY)
-        bucket_count = 0
-        bucket = 0
+        bucket_count, bucket = 0, 0
         level = {}
         for delta in sorted(counter, reverse=True):
             level[delta] = bucket
