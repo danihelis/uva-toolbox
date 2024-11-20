@@ -23,6 +23,7 @@ import yaml
 from .book import Book
 from .console import Console
 from .problem import ProblemSet
+from .submission import History
 
 
 class Toolbox:
@@ -38,6 +39,7 @@ class Toolbox:
         self.console = Console(self)
         self.load_books()
         self.load_problems()
+        self.load_submissions()
         self.load_commands()
 
     def load_books(self):
@@ -54,11 +56,17 @@ class Toolbox:
     def load_problems(self):
         filename = os.path.join(self.config.get('data-dir', '.data'),
                                 'problemset.json')
-        data = json.load(open(filename))
+        self.problemset = None
         if os.path.isfile(filename):
+            data = json.load(open(filename))
             self.problemset = ProblemSet(data, self.books)
-        else:
-            self.problemset = None
+
+    def load_submissions(self):
+        filename = os.path.join(self.config.get('data-dir', '.data'),
+                                'submissions.json')
+        if self.problemset and os.path.isfile(filename):
+            data = json.load(open(filename))
+            History.update_all(self.problemset, data)
 
     def load_commands(self):
         members = inspect.getmembers(self, lambda obj: inspect.ismethod(obj))

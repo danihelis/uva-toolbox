@@ -2,6 +2,7 @@ from collections import namedtuple
 import json
 import math
 
+from .submission import History
 from .utils import to_roman
 
 class Problem:
@@ -21,6 +22,7 @@ class Problem:
         self.submissions = Submission(**submissions)
         self.total_subs = sum(self.submissions)
         self.chapters = []
+        self.history = History()
 
     @property
     def volume(self):
@@ -42,28 +44,41 @@ class Problem:
         if not short:
             console.write('Volume', to_roman(self.volume), bold=True)
         console.print('%6d' % self.number, bold=True, end=' ')
+        verdict = self.history.verdict
         if short:
             # TODO add personal submission status
-            if True:
-                console.print(' ' * 3)
+            if not self.history.accepted:
+                console.print(' %2s ' % (verdict[0] or ''), bold=True)
             else:
                 console.print('▐', bold=True)
-                console.print('%s' % 'A', inv=True)
+                console.print('%s' % verdict[0], inv=True)
                 console.print('▌', bold=True)
             console.print('*' if star else ' ', bold=True, end=' ')
-            width = 51 - len(self.name)
+            width = 50 - len(self.name)
             console.print(self.name, end=' ' * width)
             console.print(self.popularity, end=' ', bold=True)
             console.write(self.DIFFICULTY[self.level])
             return
-        console.write(self.name)
-        info = [('Time limit', '%.0fs' % (self.time_limit / 1000)),
-                ('Best time', '%0.3fs' % (self.best_time / 1000))]
+        console.print(self.name)
+        if verdict[0]:
+            width = 69 - len(self.name)
+            console.print(' ' * width)
+            console.print('▐', bold=True)
+            console.print('%s' % verdict[0], inv=True)
+            console.print('▌', bold=True)
+        console.write()
+        info = [('Time limit ', '%.0fs' % (self.time_limit / 1000)),
+                ('  Best time ', '%0.3fs' % (self.best_time / 1000))]
+        if self.history.accepted:
+            info += [('  Your time ', '%.3fs' % (self.history.runtime / 1000)),
+                     ('  Rank ', str(self.history.rank)),
+                     (' of %d (P≤' % self.total_subs, '%.0f%%' % (
+                            100.0 * self.history.rank / self.total_subs)),
+                     (')', '')]
+
         # TODO add personal marks
         for index, (label, value) in enumerate(info):
-            if index:
-                console.print('  ')
-            console.print(label, end=' ')
+            console.print(label)
             console.print(value, bold=True)
         console.write()
         info = [('Distinct solutions ', str(self.dacu)),

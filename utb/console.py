@@ -60,6 +60,7 @@ class Console:
             self.write(str(e))
             if command and self.toolbox.config.get('debug', False):
                 traceback.print_exc()
+        self.write()
 
     def run(self):
         self.quit = False
