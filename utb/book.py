@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .utils import to_roman
+from .utils import to_roman, print_bar
 
 class Chapter:
 
@@ -77,12 +77,11 @@ class Chapter:
                                 bold=indent == 0, width=span)
         if span:
             console.print('', ('·' if depth == 1 else ' ') * (span - 1))
-        done = 0
+        done = sum(1 for p in self.problems if p.history.accepted)
         total = len(self.problems)
-        console.print('%4d' % done, bold=True)
-        console.print('/%-4d ' % total)
-        console.print('⁚' * 6)
-        console.print('%3d%%' % 0, bold=True, end='\n')
+        console.print(' %4d ' % total)
+        print_bar(console, done, total, 9, bold=depth == 1)
+        console.print(' %3d%%' % (done * 100 / total), bold=True, end='\n')
         if depth > 0:
             for obj in self.content:
                 if isinstance(obj, Chapter):

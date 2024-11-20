@@ -70,10 +70,11 @@ class Problem:
         info = [('Time limit ', '%.0fs' % (self.time_limit / 1000)),
                 ('  Best time ', '%0.3fs' % (self.best_time / 1000))]
         if self.history.accepted:
+            accepted = self.submissions.ac + self.submissions.pe
             info += [('  Your time ', '%.3fs' % (self.history.runtime / 1000)),
                      ('  Rank ', str(self.history.rank)),
-                     (' of %d (P≤' % self.total_subs, '%.0f%%' % (
-                            100.0 * self.history.rank / self.total_subs)),
+                     (' of %d (P≤' % accepted, '%.0f%%' % (
+                            100.0 * self.history.rank / accepted)),
                      (')', '')]
 
         # TODO add personal marks
