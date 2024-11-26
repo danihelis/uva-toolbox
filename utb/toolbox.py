@@ -26,6 +26,7 @@ from .console import Console
 from .problem import ProblemSet
 from .settings import DEFAULT_SETTINGS
 from .submission import History
+from .uhunt import UHunt
 
 # Commands:
 #
@@ -77,6 +78,7 @@ class Toolbox:
         self.load_problems()
         self.load_submissions()
         self.load_commands()
+        self.uhunt = UHunt(self)
 
     def get(self, key, default=None):
         return (self.config.get(key) if key in self.config else
@@ -214,3 +216,13 @@ class Toolbox:
         assert choices, 'there is no problem available'
         problem = random.choice(choices)
         self.command_info(problem.number)
+
+    def command_queue(self, *args):
+        """
+        List the online judge's live queue. It displays the last ten
+        submissions sent to the judge by any user. To list more than ten
+        entries up to 100, type a number as argument. To see only your
+        last submissions, use the command `check` instead.
+        """
+        entries = int(args[0]) if args else 10
+        self.uhunt.queue(self.console, entries)

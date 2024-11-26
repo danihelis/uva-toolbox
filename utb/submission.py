@@ -1,6 +1,7 @@
 from collections import namedtuple
 import json
 import math
+import time
 
 class Submission:
     VERDICT_CODES = {
@@ -34,6 +35,19 @@ class Submission:
     @property
     def accepted(self):
         return self.verdict_id in [80, 90]
+
+    @property
+    def time_ago(self):
+        value = max(0, int(time.time() - self.timestamp))
+        window = [('s', 1), ('m', 60), ('h', 60),
+                  ('d', 24), ('y', 365), (None, -1)]
+        for i in range(1, len(window)):
+            nextval = value // window[i][1]
+            if nextval < 1 or not window[i][0]:
+                return str(value) + window[i - 1][0]
+            value = nextval
+        return '???'
+
 
 
 class History:
