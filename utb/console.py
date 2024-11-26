@@ -27,7 +27,7 @@ class Console:
 
     def __init__(self, toolbox):
         self.toolbox = toolbox
-        self.accept_color = self.toolbox.config.get('accept-color', False)
+        self.accept_color = self.toolbox.get('accept-color', False)
 
     def write(self, *args, color=None, bold=False, backcolor=None, end='\n',
               sep=' '):
@@ -58,7 +58,7 @@ class Console:
             if command:
                 self.write(command, end=': ')
             self.write(str(e))
-            if command and self.toolbox.config.get('debug', False):
+            if command and self.toolbox.get('debug', False):
                 traceback.print_exc()
         self.write()
 

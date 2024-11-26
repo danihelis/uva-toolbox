@@ -24,11 +24,12 @@ import yaml
 from .book import Book
 from .console import Console
 from .problem import ProblemSet
+from .settings import DEFAULT_SETTINGS
 from .submission import History
 
 # Commands:
 #
-# n ext = choose next problem to solve
+# ! n ext = choose next problem to solve
 # o pen = download PDF and open it
 # se lect = list open problems or select one
 # ad d = put problem into workbench
@@ -42,6 +43,7 @@ from .submission import History
 # ac cept = mark as accepted, removing from workbench
 # re move = remove problem from workbench
 #
+# ac count = modify account data
 # up date = ...
 #
 # uh unt = open uHunt web
@@ -61,22 +63,29 @@ class Toolbox:
 
     def __init__(self, config):
         if not os.path.isfile(config):
-            raise Exception('Configuration file not found: %s' % str(config))
-        with open(config) as stream:
             try:
+                with open(config, 'w') as stream:
+                    stream.write('# Override default configuration here\n')
+            except:
+                pass
+            self.config = {}
+        else:
+            with open(config) as stream:
                 self.config = yaml.safe_load(stream)
-            except yaml.YAMLError:
-                raise
         self.console = Console(self)
         self.load_books()
         self.load_problems()
         self.load_submissions()
         self.load_commands()
 
+    def get(self, key, default=None):
+        return (self.config.get(key) if key in self.config else
+                DEFAULT_SETTINGS.get(key, default))
+
     def load_books(self):
         self.books = []
-        for index in range(self.config.get('number-books', 4)):
-            filename = os.path.join(self.config.get('data-dir', '.data'),
+        for index in range(self.get('number-books', 4)):
+            filename = os.path.join(self.get('data-dir', '.data'),
                                     'book-%d.json' % (index + 1))
             if os.path.isfile(filename):
                 with open(filename) as stream:
@@ -85,7 +94,7 @@ class Toolbox:
         self.current_book = self.books[-1]
 
     def load_problems(self):
-        filename = os.path.join(self.config.get('data-dir', '.data'),
+        filename = os.path.join(self.get('data-dir', '.data'),
                                 'problemset.json')
         self.problemset = None
         if os.path.isfile(filename):
@@ -93,7 +102,7 @@ class Toolbox:
             self.problemset = ProblemSet(data, self.books)
 
     def load_submissions(self):
-        filename = os.path.join(self.config.get('data-dir', '.data'),
+        filename = os.path.join(self.get('data-dir', '.data'),
                                 'submissions.json')
         if self.problemset and os.path.isfile(filename):
             data = json.load(open(filename))
