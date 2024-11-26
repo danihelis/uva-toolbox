@@ -197,10 +197,15 @@ class Toolbox:
         Choose randomly the next problem to solve. The next problem is
         selected from the easiest problems listed in the current book.
         To choose a problem from a specific list, type its number as
-        argument.
+        argument. To choose a problem from the entire problemset, type
+        `-` as argument.
         """
         choices, level, pop = None, None, None
-        for p in self.current_book.problems:
+        problems = self.current_book.problems
+        if args:
+            problems = (self.problemset.list.values() if args[0] == '-' else
+                        self.current_book.content[int(args[0]) - 1].problems)
+        for p in problems:
             if not p.history.accepted and (level is None or (p.level < level or
                      (p.level == level and p.popularity <= pop))):
                 if level is None or p.level < level or p.popularity < pop:
