@@ -32,7 +32,7 @@ class UHunt:
                       '%-30s' % 'Problem',
                       '%7s' % 'Run',
                       '%-18s' % 'Verdict',
-                      '%-13s' % 'User',
+                      'User',
                       bold=True, sep='  ')
         for entry in data[:entries]:
             obj = entry['msg']
@@ -49,5 +49,5 @@ class UHunt:
                           '%-30s' % title,
                           '%6.3fs' % (sub.runtime / 1000),
                           '%-18s' % sub.verdict[1][:18],
-                          '%-13s' % user,
+                          user,
                           sep='  ', bold=False)
