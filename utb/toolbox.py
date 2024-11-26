@@ -147,23 +147,14 @@ class Toolbox:
         number by space or dot. Example:
             >>> list 2.3.1
         """
-        data = self.current_book
-        if len(args) == 1:
-            args = args[0].split('.')
-        for arg in args:
-            try:
-                data = data.content[int(arg) - 1]
-            except:
-                raise Exception('invalid argument: %s' % '.'.join(args))
-        data.print_content(self.console, depth=2)
+        self.current_book.get_section(*args).print_content(
+                self.console, depth=2)
 
     def command_book(self, *args):
         """
         Select which book will be used. To list all books available,
         type the command without argument. To select a book, type its
         number. To see which book is currently selected, type `?`.
-        Example:
-            >>> book 3
         """
         if not args:
             for book in self.books:
@@ -196,15 +187,13 @@ class Toolbox:
         """
         Choose randomly the next problem to solve. The next problem is
         selected from the easiest problems listed in the current book.
-        To choose a problem from a specific list, type its number as
+        To choose a problem from a specific list, type its index as
         argument. To choose a problem from the entire problemset, type
         `-` as argument.
         """
         choices, level, pop = None, None, None
-        problems = self.current_book.problems
-        if args:
-            problems = (self.problemset.list.values() if args[0] == '-' else
-                        self.current_book.content[int(args[0]) - 1].problems)
+        problems = (self.problemset.list.values() if args and args[0] == '-'
+                    else self.current_book.get_section(*args).problems)
         for p in problems:
             if not p.history.accepted and (level is None or (p.level < level or
                      (p.level == level and p.popularity <= pop))):

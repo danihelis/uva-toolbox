@@ -127,3 +127,13 @@ class Book(Chapter):
                    width=80, bold=False):
         console.write(self.name, bold=bold, end='')
         return len(self.name)
+
+    def get_section(self, *args):
+        index = '.'.join(args).split('.') if args else []
+        section = self
+        for i in index:
+            try:
+                section = section.content[int(i) - 1]
+            except:
+                raise Exception('invalid argument: %s' % '.'.join(args))
+        return section
