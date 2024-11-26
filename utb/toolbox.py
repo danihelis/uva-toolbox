@@ -18,12 +18,43 @@ from collections import OrderedDict
 import inspect
 import json
 import os
+import random
 import yaml
 
 from .book import Book
 from .console import Console
 from .problem import ProblemSet
 from .submission import History
+
+# Commands:
+#
+# n ext = choose next problem to solve
+# o pen = download PDF and open it
+# se lect = list open problems or select one
+# ad d = put problem into workbench
+# ed it = edit test case
+# co mpile = ...
+# t est = ...
+# m ake = "compile & test"
+# su bmit = ...
+# q ueue = see submission queue
+# ch eck = list of last submissions
+# ac cept = mark as accepted, removing from workbench
+# re move = remove problem from workbench
+#
+# up date = ...
+#
+# uh unt = open uHunt web
+# ud ebug = open uDebug web
+# sh ell = open shell terminal
+#
+# ! b ook = list of uHunt books
+# ! l ist = show problems
+# ! i nfo = info for problem
+# v olume = show volumes
+# ra nk = rank on UVA
+#
+# ex it = ...
 
 
 class Toolbox:
@@ -85,9 +116,9 @@ class Toolbox:
     def run(self):
         self.console.run()
 
-    def command_quit(self, *args):
+    def command_exit(self, *args):
         """
-        Quit the interactive shell.
+        Exit the interactive shell.
         """
         self.console.quit = True
 
@@ -160,3 +191,23 @@ class Toolbox:
             number = 100
         problem = self.problemset.list[number]
         problem.print(self.console)
+
+    def command_next(self, *args):
+        """
+        Choose randomly the next problem to solve. The next problem is
+        selected from the easiest problems listed in the current book.
+        To choose a problem from a specific list, type its number as
+        argument.
+        """
+        choices, level, pop = None, None, None
+        for p in self.current_book.problems:
+            if not p.history.accepted and (level is None or (p.level < level or
+                     (p.level == level and p.popularity <= pop))):
+                if level is None or p.level < level or p.popularity < pop:
+                    choices = []
+                    level = p.level
+                    pop = p.popularity
+                choices.append(p)
+        assert choices, 'there is no problem available'
+        problem = random.choice(choices)
+        self.command_info(problem.number)

@@ -46,7 +46,6 @@ class Problem:
         console.print('%6d' % self.number, bold=True, end=' ')
         verdict = self.history.verdict
         if short:
-            # TODO add personal submission status
             if not self.history.accepted:
                 console.print(' %2s ' % (verdict[0] or ''), bold=True)
             else:
@@ -54,7 +53,7 @@ class Problem:
                 console.print('%s' % verdict[0], inv=True)
                 console.print('▌', bold=True)
             console.print('*' if star else ' ', bold=True, end=' ')
-            width = 50 - len(self.name)
+            width = 51 - len(self.name)
             console.print(self.name, end=' ' * width)
             console.print(self.popularity, end=' ', bold=True)
             console.write(self.DIFFICULTY[self.level])
@@ -76,8 +75,6 @@ class Problem:
                      (' of %d (P≤' % accepted, '%.0f%%' % (
                             100.0 * self.history.rank / accepted)),
                      (')', '')]
-
-        # TODO add personal marks
         for index, (label, value) in enumerate(info):
             console.print(label)
             console.print(value, bold=True)
