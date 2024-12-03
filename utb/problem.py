@@ -195,9 +195,10 @@ class ProblemSet:
     def get_problem(self, *args):
         number = self.toolbox.current_problem
         if args and args[0] == '-':
-            return self.last_problem
+            assert self.last_problem, 'last problem not set yet'
+            number = self.last_problem.number
         elif args:
             number = int(args[0])
-        assert number, 'no current problem available'
+        assert number, 'no problem currently selected'
         self.last_problem = self.list[number]
         return self.last_problem
