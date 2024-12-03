@@ -30,7 +30,8 @@ from .uhunt import UHunt
 
 # Commands:
 #
-# ! n ext = choose next problem to solve
+# !  n ext = choose next problem to solve
+# !  d ownload = download statement
 # o pen = download PDF and open it
 # se lect = list open problems or select one
 # ad d = put problem into workbench
@@ -51,9 +52,9 @@ from .uhunt import UHunt
 # ud ebug = open uDebug web
 # sh ell = open shell terminal
 #
-# ! b ook = list of uHunt books
-# ! l ist = show problems
-# ! i nfo = info for problem
+# !  b ook = list of uHunt books
+# !  l ist = show problems
+# !  i nfo = info for problem
 # v olume = show volumes
 # ra nk = rank on UVA
 #
@@ -79,6 +80,7 @@ class Toolbox:
         self.load_submissions()
         self.load_commands()
         self.uhunt = UHunt(self)
+        self.current_problem = None
 
     def get(self, key, default=None):
         return (self.config.get(key) if key in self.config else
@@ -101,7 +103,7 @@ class Toolbox:
         self.problemset = None
         if os.path.isfile(filename):
             data = json.load(open(filename))
-            self.problemset = ProblemSet(data, self.books)
+            self.problemset = ProblemSet(self, data, self.books)
 
     def load_submissions(self):
         filename = os.path.join(self.get('data-dir', '.data'),
@@ -183,15 +185,11 @@ class Toolbox:
     def command_info(self, *args):
         """
         Show information about a problem. To show information about the
-        current selected problem, type the comment without argument.
-        To show information about a specific problem, type its number.
-        To show information about the last problem listed, type `-`.
+        current problem, type the command without argument.  To show
+        information about a specific problem, type its number.  To show
+        information about the last problem, type `-`.
         """
-        if args:
-            number = 100 if args[0] == '-' else int(args[0])
-        else:
-            number = 100
-        problem = self.problemset.list[number]
+        problem = self.problemset.get_problem(*args)
         problem.print(self.console)
 
     def command_next(self, *args):
@@ -226,3 +224,20 @@ class Toolbox:
         """
         entries = int(args[0]) if args else 10
         self.uhunt.queue(self.console, entries)
+
+    def command_download(self, *args):
+        """
+        Download a problem's statement. To download the statement of the
+        current problem, type the command without argument.  To download
+        a specific problem, type its number.  To download the last
+        problem, type `-`.
+        """
+        problem = self.problemset.get_problem(*args)
+        self.console.write('Retrieving statement of problem %d from UVa...'
+                            % problem.number)
+        filename, size, downloaded = problem.download()
+        if downloaded:
+            self.console.write('Downloaded %d bytes and created file %s' % (
+                    size, filename))
+        else:
+            self.console.write('File %s already exists!' % filename)

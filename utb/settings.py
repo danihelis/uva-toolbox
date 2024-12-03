@@ -17,6 +17,7 @@
 DEFAULT_SETTINGS = {
     'accept-color': True,
     'data-dir': '.data',
+    'pdf-dir': '.pdf',
     'debug': False,
     'number-books': 4,
     'uva-problem': 'http://uva.onlinejudge.org/external/{}/p{}.pdf',

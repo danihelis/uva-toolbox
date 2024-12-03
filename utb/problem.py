@@ -17,6 +17,8 @@
 from collections import namedtuple
 import json
 import math
+import os
+import urllib
 
 from .submission import History
 from .utils import to_roman
@@ -26,7 +28,8 @@ class Problem:
         'Very Easy', 'Easy', 'Easy-Medium', 'Medium', 'Medium-Hard',
         'Hard', 'Very Hard']
 
-    def __init__(self, data):
+    def __init__(self, toolbox, data):
+        self.toolbox = toolbox
         fields = {'id': 0, 'number': 1, 'name': 2, 'dacu': 3, 'best_time': 4,
                   'time_limit': 19, 'type': 20}
         self.__dict__.update({field: data[index]
@@ -123,15 +126,34 @@ class Problem:
             chapter.print_name(console, with_parent=True, width=78)
             console.write()
 
+    def download(self):
+        filename = os.path.join(self.toolbox.get('pdf-dir'), str(self.volume),
+                                '%d.pdf' % self.number)
+        downloaded = False
+        if not os.path.exists(filename):
+            path, _ = os.path.split(filename)
+            if not os.path.exists(path):
+                os.makedirs(path)
+            url = self.toolbox.get('uva-problem')
+            url = url.format(self.volume, self.number)
+            try:
+                urllib.request.urlretrieve(url, filename)
+            except:
+                raise Exception('cannot access URL', url)
+            downloaded = True
+        return filename, os.path.getsize(filename), downloaded
+
 
 class ProblemSet:
 
-    def __init__(self, data, books=[]):
+    def __init__(self, toolbox, data, books=[]):
+        self.toolbox = toolbox
         self.problems = {}
         self.list = {}
         self.volumes = {}
+        self.last_problem = None
         for obj in data:
-            problem = Problem(obj)
+            problem = Problem(self.toolbox, obj)
             self.problems[problem.id] = problem
             self.list[problem.number] = problem
             self.volumes.setdefault(problem.volume, []).append(problem)
@@ -169,3 +191,13 @@ class ProblemSet:
                 bucket += 1
         for p in self.problems.values():
             p.level = level[p.delta]
+
+    def get_problem(self, *args):
+        number = self.toolbox.current_problem
+        if args and args[0] == '-':
+            return self.last_problem
+        elif args:
+            number = int(args[0])
+        assert number, 'no current problem available'
+        self.last_problem = self.list[number]
+        return self.last_problem
