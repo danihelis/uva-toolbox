@@ -24,6 +24,7 @@ import yaml
 from .book import Book
 from .console import Console
 from .problem import ProblemSet
+from .process import Process
 from .settings import DEFAULT_SETTINGS
 from .submission import History
 from .uhunt import UHunt
@@ -80,6 +81,7 @@ class Toolbox:
         self.load_submissions()
         self.load_commands()
         self.uhunt = UHunt(self)
+        self.process = Process(self)
         self.current_problem = None
 
     def get(self, key, default=None):
@@ -233,11 +235,20 @@ class Toolbox:
         problem, type `-`.
         """
         problem = self.problemset.get_problem(*args)
-        self.console.write('Retrieving statement of problem %d from UVa...'
-                            % problem.number)
-        filename, size, downloaded = problem.download()
-        if downloaded:
-            self.console.write('Downloaded %d bytes and created file %s' % (
-                    size, filename))
+        if os.path.exists(problem.filename):
+            self.console.write('File already exists')
         else:
-            self.console.write('File %s already exists!' % filename)
+            size = problem.download(console=self.console)
+
+    def command_open(self, *args):
+        """
+        Open a problem's statement in a pdf viewer. If the statement
+        file does not exist, it is downloaded first.  To open the
+        current problem, type the command without argument.  To open a
+        specific problem, type its number.  To open the last problem,
+        type `-`.
+        """
+        problem = self.problemset.get_problem(*args)
+        if not os.path.exists(problem.filename):
+            self.command_download(*args)
+        self.process.open('pdfviewer', problem.filename, console=self.console)

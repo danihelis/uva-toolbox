@@ -126,22 +126,29 @@ class Problem:
             chapter.print_name(console, with_parent=True, width=78)
             console.write()
 
-    def download(self):
-        filename = os.path.join(self.toolbox.get('pdf-dir'), str(self.volume),
+    @property
+    def filename(self):
+        return os.path.join(self.toolbox.get('pdf-dir'), str(self.volume),
                                 '%d.pdf' % self.number)
-        downloaded = False
-        if not os.path.exists(filename):
-            path, _ = os.path.split(filename)
-            if not os.path.exists(path):
-                os.makedirs(path)
-            url = self.toolbox.get('uva-problem')
-            url = url.format(self.volume, self.number)
-            try:
-                urllib.request.urlretrieve(url, filename)
-            except:
-                raise Exception('cannot access URL', url)
-            downloaded = True
-        return filename, os.path.getsize(filename), downloaded
+
+    def download(self, console=None):
+        filename = self.filename
+        if os.path.exists(filename):
+            return None
+        path, _ = os.path.split(filename)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        url = self.toolbox.get('uva-problem').format(self.volume, self.number)
+        if console:
+            console.write('Retrieving data from', end=' ')
+            console.write(url, bold=True)
+        try:
+            urllib.request.urlretrieve(url, filename)
+        except:
+            raise Exception('cannot access URL', url)
+        if console:
+            console.write('Downloaded %dKB' % (
+                    os.path.getsize(filename) / 1000))
 
 
 class ProblemSet:

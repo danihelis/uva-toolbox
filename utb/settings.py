@@ -20,6 +20,7 @@ DEFAULT_SETTINGS = {
     'pdf-dir': '.pdf',
     'debug': False,
     'number-books': 4,
+    'pdfviewer': 'evince {}',
     'uva-problem': 'http://uva.onlinejudge.org/external/{}/p{}.pdf',
     'uva-submit': 'https://uva.onlinejudge.org/index.php',
     'uhunt-api': 'https://uhunt.onlinejudge.org/api/',
