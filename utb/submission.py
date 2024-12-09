@@ -17,6 +17,7 @@
 from collections import namedtuple
 import json
 import math
+import os
 import time
 
 class Submission:
@@ -65,7 +66,6 @@ class Submission:
         return '???'
 
 
-
 class History:
 
     def __init__(self):
@@ -99,11 +99,18 @@ class History:
         return min(s.rank for s in accepted) if accepted else None
 
     @classmethod
-    def update_all(cls, problemset, data):
-        for p in problemset.problems.values():
+    def load_all(cls, toolbox):
+        filename = os.path.join(toolbox.get('data-dir'), 'submissions.json')
+        if toolbox.problemset and os.path.isfile(filename):
+            with open(filename) as stream:
+                cls.update_all(toolbox, json.load(stream))
+
+    @classmethod
+    def update_all(cls, toolbox, data):
+        for p in toolbox.problemset.problems.values():
             p.history = cls()
         for entry in data['subs']:
             pid = entry[1]
             submission = Submission(entry[1], entry[4], entry[2], entry[3],
                                     entry[6])
-            problemset.problems[pid].history.add(submission)
+            toolbox.problemset.problems[pid].history.add(submission)

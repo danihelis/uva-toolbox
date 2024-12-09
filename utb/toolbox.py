@@ -82,22 +82,15 @@ class Toolbox:
         self.books = Book.load_all(self)
         self.current_book = self.books[-1]
         self.problemset = ProblemSet(self)
-        self.load_submissions()
-        self.load_commands()
         self.uhunt = UHunt(self)
         self.process = Process(self)
         self.current_problem = None
+        History.load_all(self)
+        self.load_commands()
 
     def get(self, key, default=None):
         return (self.config.get(key) if key in self.config else
                 DEFAULT_SETTINGS.get(key, default))
-
-    def load_submissions(self):
-        filename = os.path.join(self.get('data-dir', '.data'),
-                                'submissions.json')
-        if self.problemset and os.path.isfile(filename):
-            data = json.load(open(filename))
-            History.update_all(self.problemset, data)
 
     def load_commands(self):
         members = inspect.getmembers(self, lambda obj: inspect.ismethod(obj))
