@@ -59,32 +59,32 @@ class Problem:
         # return chr(ord('A') + self.popularity_level)
         return chr(ord('A') + 10 - min(10, int(math.log(max(1, self.dacu)))))
 
-    def print(self, console, short=False, star=False):
+    def print(self, short=False, star=False):
         if not short:
-            console.write('Volume', to_roman(self.volume), bold=True)
-        console.print('%6d' % self.number, bold=True, end=' ')
+            self.toolbox.console.write('Volume', to_roman(self.volume), bold=True)
+        self.toolbox.console.print('%6d' % self.number, bold=True, end=' ')
         verdict = self.history.verdict
         if short:
             if not self.history.accepted:
-                console.print(' %2s ' % (verdict[0] or ''), bold=True)
+                self.toolbox.console.print(' %2s ' % (verdict[0] or ''), bold=True)
             else:
-                console.print('▐', bold=True)
-                console.print('%s' % verdict[0], inv=True)
-                console.print('▌', bold=True)
-            console.print('*' if star else ' ', bold=True, end=' ')
+                self.toolbox.console.print('▐', bold=True)
+                self.toolbox.console.print('%s' % verdict[0], inv=True)
+                self.toolbox.console.print('▌', bold=True)
+            self.toolbox.console.print('*' if star else ' ', bold=True, end=' ')
             width = 51 - len(self.name)
-            console.print(self.name, end=' ' * width)
-            console.print(self.popularity, end=' ', bold=True)
-            console.write(self.DIFFICULTY[self.level])
+            self.toolbox.console.print(self.name, end=' ' * width)
+            self.toolbox.console.print(self.popularity, end=' ', bold=True)
+            self.toolbox.console.write(self.DIFFICULTY[self.level])
             return
-        console.print(self.name)
+        self.toolbox.console.print(self.name)
         if verdict[0]:
             width = 69 - len(self.name)
-            console.print(' ' * width)
-            console.print('▐', bold=True)
-            console.print('%s' % verdict[0], inv=True)
-            console.print('▌', bold=True)
-        console.write()
+            self.toolbox.console.print(' ' * width)
+            self.toolbox.console.print('▐', bold=True)
+            self.toolbox.console.print('%s' % verdict[0], inv=True)
+            self.toolbox.console.print('▌', bold=True)
+        self.toolbox.console.write()
         info = [('Time limit ', '%.0fs' % (self.time_limit / 1000)),
                 ('  Best time ', '%0.3fs' % (self.best_time / 1000))]
         if self.history.accepted:
@@ -95,9 +95,9 @@ class Problem:
                             100.0 * self.history.rank / accepted)),
                      (')', '')]
         for index, (label, value) in enumerate(info):
-            console.print(label)
-            console.print(value, bold=True)
-        console.write()
+            self.toolbox.console.print(label)
+            self.toolbox.console.print(value, bold=True)
+        self.toolbox.console.write()
         info = [('Distinct solutions ', str(self.dacu)),
                 (' (', self.popularity),
                 (')  AC ', '%.1f%%' % (self.percentage('ac')
@@ -108,9 +108,9 @@ class Problem:
                 ('  ML ', '%.0f%%' % self.percentage('ml')),
                 ('  ER ', '%.0f%%' % self.percentage('er'))]
         for label, value in info:
-            console.print(label)
-            console.print(value, bold=True)
-        console.write()
+            self.toolbox.console.print(label)
+            self.toolbox.console.print(value, bold=True)
+        self.toolbox.console.write()
         info = [('Expectation  AC ', '%.1f%%' % (100 * self.expected.ac)),
                 (' (', '%+.0f%%' % self.delta),
                 (')  WA ', '%.0f%%' % (100 * self.expected.wa)),
@@ -118,20 +118,20 @@ class Problem:
                 ('  ML ', '%.0f%%' % (100 * self.expected.ml)),
                 ('  Level ', self.DIFFICULTY[self.level])]
         for label, value in info:
-            console.print(label)
-            console.print(value, bold=True)
-        console.write()
+            self.toolbox.console.print(label)
+            self.toolbox.console.print(value, bold=True)
+        self.toolbox.console.write()
         for chapter, star in sorted(self.chapters, key=lambda t: t[0].book):
-            console.print('*' if star else ' ', bold=True, end=' ')
-            chapter.print_name(console, with_parent=True, width=78)
-            console.write()
+            self.toolbox.console.print('*' if star else ' ', bold=True, end=' ')
+            chapter.print_name(with_parent=True, width=78)
+            self.toolbox.console.write()
 
     @property
     def filename(self):
         return os.path.join(self.toolbox.get('pdf-dir'), str(self.volume),
                                 '%d.pdf' % self.number)
 
-    def download(self, console=None):
+    def download(self):
         filename = self.filename
         if os.path.exists(filename):
             return None
@@ -139,32 +139,35 @@ class Problem:
         if not os.path.exists(path):
             os.makedirs(path)
         url = self.toolbox.get('uva-problem').format(self.volume, self.number)
-        if console:
-            console.write('Retrieving data from', end=' ')
-            console.write(url, bold=True)
+        self.toolbox.console.write('Retrieving data from', end=' ')
+        self.toolbox.console.write(url, bold=True)
         try:
             urllib.request.urlretrieve(url, filename)
         except:
             raise Exception('cannot access URL', url)
-        if console:
-            console.write('Downloaded %dKB' % (
+        self.toolbox.console.write('Downloaded %dKB' % (
                     os.path.getsize(filename) / 1000))
 
 
 class ProblemSet:
 
-    def __init__(self, toolbox, data, books=[]):
+    def __init__(self, toolbox):
         self.toolbox = toolbox
         self.problems = {}
         self.list = {}
         self.volumes = {}
         self.last_problem = None
+        filename = os.path.join(toolbox.get('data-dir'), 'problemset.json')
+        if not os.path.isfile(filename):
+            return
+        with open(filename) as stream:
+            data = json.load(stream)
         for obj in data:
             problem = Problem(self.toolbox, obj)
             self.problems[problem.id] = problem
             self.list[problem.number] = problem
             self.volumes.setdefault(problem.volume, []).append(problem)
-        for book in books:
+        for book in toolbox.books:
             book.set_problems(self)
         avg_ac, avg_wa, avg_tl, avg_ml = 0, 0, 0, 0
         for p in self.problems.values():

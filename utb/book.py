@@ -95,7 +95,7 @@ class Chapter:
                     obj.print_content(indent + 1, depth - 1)
                 else:
                     problem = self.get_problem(obj)
-                    problem.print(self.toolbox.console, short=True, star=obj < 0)
+                    problem.print(short=True, star=obj < 0)
 
     def get_problem(self, number):
         for problem in self.problems:
@@ -144,6 +144,10 @@ class Book(Chapter):
 
     def __str__(self):
         return self.name
+
+    @property
+    def book(self):
+        return self.book_index
 
     def print_name(self, with_parent=False, with_index=True, width=80,
                    bold=False):

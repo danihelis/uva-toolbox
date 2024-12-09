@@ -81,7 +81,7 @@ class Toolbox:
         self.account = Account(self)
         self.books = Book.load_all(self)
         self.current_book = self.books[-1]
-        self.load_problems()
+        self.problemset = ProblemSet(self)
         self.load_submissions()
         self.load_commands()
         self.uhunt = UHunt(self)
@@ -91,14 +91,6 @@ class Toolbox:
     def get(self, key, default=None):
         return (self.config.get(key) if key in self.config else
                 DEFAULT_SETTINGS.get(key, default))
-
-    def load_problems(self):
-        filename = os.path.join(self.get('data-dir', '.data'),
-                                'problemset.json')
-        self.problemset = None
-        if os.path.isfile(filename):
-            data = json.load(open(filename))
-            self.problemset = ProblemSet(self, data, self.books)
 
     def load_submissions(self):
         filename = os.path.join(self.get('data-dir', '.data'),
@@ -183,8 +175,7 @@ class Toolbox:
         information about a specific problem, type its number.  To show
         information about the last problem, type `-`.
         """
-        problem = self.problemset.get_problem(*args)
-        problem.print(self.console)
+        self.problemset.get_problem(*args).print()
 
     def command_next(self, *args):
         """
@@ -230,7 +221,7 @@ class Toolbox:
         if os.path.exists(problem.filename):
             self.console.write('File already exists')
         else:
-            size = problem.download(console=self.console)
+            size = problem.download()
 
     def command_open(self, *args):
         """
