@@ -79,7 +79,8 @@ class Toolbox:
                 self.config = yaml.safe_load(stream)
         self.console = Console(self)
         self.account = Account(self)
-        self.load_books()
+        self.books = Book.load_all(self)
+        self.current_book = self.books[-1]
         self.load_problems()
         self.load_submissions()
         self.load_commands()
@@ -90,17 +91,6 @@ class Toolbox:
     def get(self, key, default=None):
         return (self.config.get(key) if key in self.config else
                 DEFAULT_SETTINGS.get(key, default))
-
-    def load_books(self):
-        self.books = []
-        for index in range(self.get('number-books', 4)):
-            filename = os.path.join(self.get('data-dir', '.data'),
-                                    'book-%d.json' % (index + 1))
-            if os.path.isfile(filename):
-                with open(filename) as stream:
-                    data = json.loads(stream.read())
-                    self.books.append(Book(data, index + 1))
-        self.current_book = self.books[-1]
 
     def load_problems(self):
         filename = os.path.join(self.get('data-dir', '.data'),
@@ -165,8 +155,7 @@ class Toolbox:
         number by space or dot. Example:
             >>> list 2.3.1
         """
-        self.current_book.get_section(*args).print_content(
-                self.console, depth=2)
+        self.current_book.get_section(*args).print_content(depth=2)
 
     def command_book(self, *args):
         """
@@ -176,7 +165,7 @@ class Toolbox:
         """
         if not args:
             for book in self.books:
-                book.print_content(self.console, depth=1)
+                book.print_content(depth=1)
             return
         if args[0] == '?':
             self.console.write(self.current_book.name, 'is currently selected')

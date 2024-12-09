@@ -14,11 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+import json
+
 from .utils import to_roman, print_bar
 
 class Chapter:
 
-    def __init__(self, content, parent=None, index=0):
+    def __init__(self, toolbox, content, parent=None, index=0):
+        self.toolbox = toolbox
         self.parent = parent
         self.index = index
         self.problems = []
@@ -30,7 +34,7 @@ class Chapter:
             self.name = content['title']
             self.content = []
             for index, obj in enumerate(content['arr']):
-                self.content.append(Chapter(obj, self, index + 1))
+                self.content.append(Chapter(toolbox, obj, self, index + 1))
 
     def __str__(self):
         return '%s %s' % (self.get_full_index(), self.name)
@@ -47,7 +51,7 @@ class Chapter:
         parent_index = self.parent.get_full_index()
         return ('%s.' % parent_index if parent_index else '') + str(self.index)
 
-    def print_name(self, console, with_parent=False, with_index=True, width=80,
+    def print_name(self, with_parent=False, with_index=True, width=80,
                    bold=False):
         index = self.get_full_index()
         used = 0
@@ -56,39 +60,42 @@ class Chapter:
             available -= len(index) + 1
         if with_parent and self.parent:
             available -= 3 # separator
-            used = self.parent.print_name(console, True, False, available, bold)
-            console.print(' > ')
+            used = self.parent.print_name(True, False, available, bold)
+            self.toolbox.console.print(' > ')
             used += 3
         if index and with_index:
-            console.print(index, bold=bold, end=' ')
+            self.toolbox.console.print(index, bold=bold, end=' ')
             used += len(index) + 1
         if used + len(self.name) <= width:
-            console.print('%s' % self.name, bold=bold)
+            self.toolbox.console.print('%s' % self.name, bold=bold)
             used += len(self.name)
         else:
-            console.print('%s…' % self.name[:max(0, width - 1 - used)], bold=bold)
+            title = self.name[:max(0, width - 1 - used)]
+            self.toolbox.console.print('%s…' % title, bold=bold)
             used += 1 + max(0, width - 1 - used)
         return used
 
-    def print_content(self, console, indent=0, depth=0):
-        console.print('  ' * indent)
+    def print_content(self, indent=0, depth=0):
+        self.toolbox.console.print('  ' * indent)
         span = 60 - 2 * indent
-        span -= self.print_name(console, with_parent=indent == 0,
+        span -= self.print_name(with_parent=indent == 0,
                                 bold=indent == 0, width=span)
         if span:
-            console.print('', ('·' if depth == 1 else ' ') * (span - 1))
+            line = ('·' if depth == 1 else ' ') * (span - 1)
+            self.toolbox.console.print('', line)
         done = sum(1 for p in self.problems if p.history.accepted)
         total = len(self.problems)
-        console.print(' %4d ' % total)
-        print_bar(console, done, total, 9, bold=depth == 1)
-        console.print(' %3d%%' % (done * 100 / total), bold=True, end='\n')
+        self.toolbox.console.print(' %4d ' % total)
+        print_bar(self.toolbox.console, done, total, 9, bold=depth == 1)
+        self.toolbox.console.print(' %3d%%' % (done * 100 / total), bold=True,
+                                   end='\n')
         if depth > 0:
             for obj in self.content:
                 if isinstance(obj, Chapter):
-                    obj.print_content(console, indent + 1, depth - 1)
+                    obj.print_content(indent + 1, depth - 1)
                 else:
                     problem = self.get_problem(obj)
-                    problem.print(console, short=True, star=obj < 0)
+                    problem.print(self.toolbox.console, short=True, star=obj < 0)
 
     def get_problem(self, number):
         for problem in self.problems:
@@ -110,22 +117,37 @@ class Chapter:
 
 class Book(Chapter):
 
-    def __init__(self, content, index):
-        self.index = index
-        super().__init__(['Book ' + to_roman(index)])
+    def __init__(self, toolbox, content, index):
+        self.book_index = index
+        super().__init__(toolbox, ['Book ' + to_roman(index)])
         for index, obj in enumerate(content):
-            self.content.append(Chapter(obj, self, index + 1))
+            self.content.append(Chapter(toolbox, obj, self, index + 1))
+
+    @classmethod
+    def load(cls, toolbox, index):
+        filename = os.path.join(toolbox.get('data-dir'),
+                                'book-%d.json' % (index))
+        if os.path.isfile(filename):
+            with open(filename) as stream:
+                data = json.loads(stream.read())
+                return cls(toolbox, data, index)
+        return None
+
+    @classmethod
+    def load_all(cls, toolbox):
+        books = []
+        for index in range(toolbox.get('number-books', 4)):
+            book = cls.load(toolbox, index + 1)
+            if book:
+                books.append(book)
+        return books
 
     def __str__(self):
         return self.name
 
-    @property
-    def book(self):
-        return self.index
-
-    def print_name(self, console, with_parent=False, with_index=True,
-                   width=80, bold=False):
-        console.write(self.name, bold=bold, end='')
+    def print_name(self, with_parent=False, with_index=True, width=80,
+                   bold=False):
+        self.toolbox.console.write(self.name, bold=bold, end='')
         return len(self.name)
 
     def get_section(self, *args):
