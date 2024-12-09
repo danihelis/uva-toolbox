@@ -21,6 +21,7 @@ import os
 import random
 import yaml
 
+from .account import Account
 from .book import Book
 from .console import Console
 from .problem import ProblemSet
@@ -33,7 +34,7 @@ from .uhunt import UHunt
 #
 # !  n ext = choose next problem to solve
 # !  d ownload = download statement
-# o pen = download PDF and open it
+# !  o pen = download PDF and open it
 # se lect = list open problems or select one
 # ad d = put problem into workbench
 # ed it = edit test case
@@ -46,7 +47,8 @@ from .uhunt import UHunt
 # ac cept = mark as accepted, removing from workbench
 # re move = remove problem from workbench
 #
-# ac count = modify account data
+# us er = modify account data
+# p assword = define user password
 # up date = ...
 #
 # uh unt = open uHunt web
@@ -76,6 +78,7 @@ class Toolbox:
             with open(config) as stream:
                 self.config = yaml.safe_load(stream)
         self.console = Console(self)
+        self.account = Account(self)
         self.load_books()
         self.load_problems()
         self.load_submissions()
