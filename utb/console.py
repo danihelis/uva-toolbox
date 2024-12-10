@@ -29,21 +29,48 @@ class Console:
         self.toolbox = toolbox
         self.accept_color = self.toolbox.get('accept-color', False)
 
-    def write(self, *args, color=None, bold=False, backcolor=None, end='\n',
-              sep=' '):
-        if (color or bold or backcolor) and self.accept_color:
-            print('\033[%s%s3%dm' % ('1;' if bold else '',
-                                     ('4%d;' % backcolor) if backcolor else '',
-                                     color if color is not None else self.WHITE),
-                  end='')
-            print(*args, sep=sep, end='')
-            print('\033[0m', end=end)
+    def write(self, arg, color=None, bold=False, background=None):
+        if (color or bold or background) and self.accept_color:
+            print('\033[%s%s3%dm' % (
+                        '1;' if bold else '',
+                        ('4%d;' % background) if background else '',
+                        color if color is not None else self.WHITE),
+                  arg, '\033[0m', sep='', end='')
         else:
-            print(*args, sep=sep, end=end)
+            print(arg, sep='', end='')
 
-    def print(self, *args, bold=False, inv=False, end='', sep=' '):
-        self.write(*args, bold=bold, color=self.BLACK if inv else None,
-                   backcolor=self.WHITE if inv else None, end=end, sep=sep)
+    def print(self, *args, bold=False, inv=False, end='\n', sep=' '):
+        content = (sep.join(args) if len(args) > 1 else
+                   args[0] if args else '')
+        self.write(content, bold=bold, color=self.BLACK if inv else None,
+                   background=self.WHITE if inv else None)
+        self.write(end)
+
+    def alternate(self, *args, end='\n', sep=' ', inv=False, start_bold=False):
+        mod = 0 if start_bold else 1
+        for index, arg in enumerate(args):
+            last = sep if index < len(args) - 1 else end
+            self.print(arg, bold=index % 2 == mod, end=last, inv=inv)
+
+    def bar(self, value, maximum, size, bold=False):
+        fractions = zip('▉▊▋▌▍▎▏', list(range(7, 0, -1)))
+        bar = ''
+        factor = maximum / size
+        for i in range(size):
+            symbol = None
+            if value >= (i + 1) * factor:
+                symbol = '█'
+            elif value > i * factor:
+                delta = (value - i * factor) / factor
+                for symbol, f in fractions:
+                    if delta >= f / 8:
+                        break
+                else: # no break
+                    symbol = None
+            if symbol:
+                self.write(symbol, bold=bold)
+            else:
+                self.write('⁚')
 
     def execute(self, line):
         argv = line.split()
@@ -54,23 +81,20 @@ class Console:
             command = self.toolbox.get_unique_command(argv[0])
             self.toolbox.commands[command](*argv[1:])
         except Exception as e:
-            self.write('Error', bold=True, end=': ')
+            self.print('Error', bold=True, end=': ')
             if command:
-                self.write(command, end=': ')
-            self.write(str(e))
+                self.print(command, end=': ')
+            self.print(str(e))
             if command and self.toolbox.get('debug', False):
                 traceback.print_exc()
-        self.write()
+        self.print()
 
     def run(self):
         self.quit = False
-        self.write(COPYRIGHT)
+        self.print(COPYRIGHT)
         bold = False
-        for phrase in ['Type', 'h', 'or', 'help',
-                       'for a list of available commands']:
-            self.write(phrase, bold=bold, end=' ')
-            bold = not bold
-        self.write(end='\n\n')
+        self.alternate('Type', 'h', 'or', 'help',
+                       'for a list of available commands')
         prompt = ' utb '
         while not self.quit:
             accent = '░▒▓'
@@ -79,5 +103,5 @@ class Console:
                 line = input().strip()
                 self.execute(line)
             except (EOFError, KeyboardInterrupt):
-                self.write()
+                self.print()
                 self.quit = True

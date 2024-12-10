@@ -17,7 +17,7 @@
 import os
 import json
 
-from .utils import to_roman, print_bar
+from .utils import to_roman
 
 class Chapter:
 
@@ -61,34 +61,33 @@ class Chapter:
         if with_parent and self.parent:
             available -= 3 # separator
             used = self.parent.print_name(True, False, available, bold)
-            self.toolbox.console.print(' > ')
+            self.toolbox.console.write(' > ')
             used += 3
         if index and with_index:
             self.toolbox.console.print(index, bold=bold, end=' ')
             used += len(index) + 1
         if used + len(self.name) <= width:
-            self.toolbox.console.print('%s' % self.name, bold=bold)
+            self.toolbox.console.write('%s' % self.name, bold=bold)
             used += len(self.name)
         else:
             title = self.name[:max(0, width - 1 - used)]
-            self.toolbox.console.print('%s…' % title, bold=bold)
+            self.toolbox.console.write('%s…' % title, bold=bold)
             used += 1 + max(0, width - 1 - used)
         return used
 
     def print_content(self, indent=0, depth=0):
-        self.toolbox.console.print('  ' * indent)
+        self.toolbox.console.write('  ' * indent)
         span = 60 - 2 * indent
         span -= self.print_name(with_parent=indent == 0,
                                 bold=indent == 0, width=span)
         if span:
             line = ('·' if depth == 1 else ' ') * (span - 1)
-            self.toolbox.console.print('', line)
+            self.toolbox.console.write(' ' + line)
         done = sum(1 for p in self.problems if p.history.accepted)
         total = len(self.problems)
-        self.toolbox.console.print(' %4d ' % total)
-        print_bar(self.toolbox.console, done, total, 9, bold=depth == 1)
-        self.toolbox.console.print(' %3d%%' % (done * 100 / total), bold=True,
-                                   end='\n')
+        self.toolbox.console.write(' %4d ' % total)
+        self.toolbox.console.bar(done, total, 9, bold=depth == 1)
+        self.toolbox.console.print(' %3d%%' % (done * 100 / total), bold=True)
         if depth > 0:
             for obj in self.content:
                 if isinstance(obj, Chapter):
@@ -151,7 +150,7 @@ class Book(Chapter):
 
     def print_name(self, with_parent=False, with_index=True, width=80,
                    bold=False):
-        self.toolbox.console.write(self.name, bold=bold, end='')
+        self.toolbox.console.write(self.name, bold=bold)
         return len(self.name)
 
     def get_section(self, *args):

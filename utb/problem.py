@@ -61,70 +61,62 @@ class Problem:
 
     def print(self, short=False, star=False):
         if not short:
-            self.toolbox.console.write('Volume', to_roman(self.volume), bold=True)
+            self.toolbox.console.print('Volume', to_roman(self.volume),
+                                       bold=True)
         self.toolbox.console.print('%6d' % self.number, bold=True, end=' ')
         verdict = self.history.verdict
         if short:
             if not self.history.accepted:
-                self.toolbox.console.print(' %2s ' % (verdict[0] or ''), bold=True)
+                self.toolbox.console.write(' %2s ' % (verdict[0] or ''),
+                                           bold=True)
             else:
-                self.toolbox.console.print('▐', bold=True)
-                self.toolbox.console.print('%s' % verdict[0], inv=True)
-                self.toolbox.console.print('▌', bold=True)
-            self.toolbox.console.print('*' if star else ' ', bold=True, end=' ')
-            width = 51 - len(self.name)
-            self.toolbox.console.print(self.name, end=' ' * width)
-            self.toolbox.console.print(self.popularity, end=' ', bold=True)
-            self.toolbox.console.write(self.DIFFICULTY[self.level])
+                self.toolbox.console.print(' %s ' % verdict[0], inv=True,
+                                           end='')
+            width = 49 - len(self.name)
+            name = self.name[:49] + ' ' * width
+            self.toolbox.console.alternate('', '*' if star else ' ',
+                                           name, self.popularity,
+                                           self.DIFFICULTY[self.level])
             return
-        self.toolbox.console.print(self.name)
+        self.toolbox.console.write(self.name)
         if verdict[0]:
-            width = 69 - len(self.name)
-            self.toolbox.console.print(' ' * width)
-            self.toolbox.console.print('▐', bold=True)
-            self.toolbox.console.print('%s' % verdict[0], inv=True)
-            self.toolbox.console.print('▌', bold=True)
-        self.toolbox.console.write()
-        info = [('Time limit ', '%.0fs' % (self.time_limit / 1000)),
-                ('  Best time ', '%0.3fs' % (self.best_time / 1000))]
+            self.toolbox.console.write(' ' * max(0, 69 - len(self.name)))
+            self.toolbox.console.print(' %s ' % verdict[0], inv=True)
+        else:
+            self.toolbox.console.print()
+        self.toolbox.console.alternate(
+                'Time limit', '%.0fs' % (self.time_limit / 1000),
+                ' Best time', '%0.3fs' % (self.best_time / 1000), end='')
         if self.history.accepted:
             accepted = self.submissions.ac + self.submissions.pe
-            info += [('  Your time ', '%.3fs' % (self.history.runtime / 1000)),
-                     ('  Rank ', str(self.history.rank)),
-                     (' of %d (P≤' % accepted, '%.0f%%' % (
-                            100.0 * self.history.rank / accepted)),
-                     (')', '')]
-        for index, (label, value) in enumerate(info):
-            self.toolbox.console.print(label)
-            self.toolbox.console.print(value, bold=True)
-        self.toolbox.console.write()
-        info = [('Distinct solutions ', str(self.dacu)),
-                (' (', self.popularity),
-                (')  AC ', '%.1f%%' % (self.percentage('ac')
-                                     + self.percentage('pe'))),
-                ('  (PE ', '%.0f%%' % self.percentage('pe')),
-                (')  WA ', '%.0f%%' % self.percentage('wa')),
-                ('  TL ', '%.0f%%' % self.percentage('tl')),
-                ('  ML ', '%.0f%%' % self.percentage('ml')),
-                ('  ER ', '%.0f%%' % self.percentage('er'))]
-        for label, value in info:
-            self.toolbox.console.print(label)
-            self.toolbox.console.print(value, bold=True)
-        self.toolbox.console.write()
-        info = [('Expectation  AC ', '%.1f%%' % (100 * self.expected.ac)),
-                (' (', '%+.0f%%' % self.delta),
-                (')  WA ', '%.0f%%' % (100 * self.expected.wa)),
-                ('  TL ', '%.0f%%' % (100 * self.expected.tl)),
-                ('  ML ', '%.0f%%' % (100 * self.expected.ml)),
-                ('  Level ', self.DIFFICULTY[self.level])]
-        for label, value in info:
-            self.toolbox.console.print(label)
-            self.toolbox.console.print(value, bold=True)
-        self.toolbox.console.write()
+            self.toolbox.console.alternate(
+                    '  Your time ', '%.3fs' % (self.history.runtime / 1000),
+                    '  Rank ', str(self.history.rank),
+                    ' of %d (P≤' % accepted, '%.0f%%' % (
+                            100.0 * self.history.rank / accepted),
+                    ')', '', end='', sep='')
+        self.toolbox.console.print()
+        self.toolbox.console.alternate(
+                'Distinct solutions ', str(self.dacu),
+                ' (', self.popularity,
+                ')  AC ', '%.1f%%' % (self.percentage('ac')
+                                    + self.percentage('pe')),
+                '  (PE ', '%.0f%%' % self.percentage('pe'),
+                ')  WA ', '%.0f%%' % self.percentage('wa'),
+                '  TL ', '%.0f%%' % self.percentage('tl'),
+                '  ML ', '%.0f%%' % self.percentage('ml'),
+                '  ER ', '%.0f%%' % self.percentage('er'), sep='')
+        self.toolbox.console.alternate(
+                'Expectation  AC ', '%.1f%%' % (100 * self.expected.ac),
+                ' (', '%+.0f%%' % self.delta,
+                ')  WA ', '%.0f%%' % (100 * self.expected.wa),
+                '  TL ', '%.0f%%' % (100 * self.expected.tl),
+                '  ML ', '%.0f%%' % (100 * self.expected.ml),
+                '  Level ', self.DIFFICULTY[self.level], sep='')
         for chapter, star in sorted(self.chapters, key=lambda t: t[0].book):
             self.toolbox.console.print('*' if star else ' ', bold=True, end=' ')
             chapter.print_name(with_parent=True, width=78)
-            self.toolbox.console.write()
+            self.toolbox.console.print()
 
     @property
     def filename(self):
@@ -139,13 +131,12 @@ class Problem:
         if not os.path.exists(path):
             os.makedirs(path)
         url = self.toolbox.get('uva-problem').format(self.volume, self.number)
-        self.toolbox.console.write('Retrieving data from', end=' ')
-        self.toolbox.console.write(url, bold=True)
+        self.toolbox.console.alternate('Retrieving data from', url)
         try:
             urllib.request.urlretrieve(url, filename)
         except:
             raise Exception('cannot access URL', url)
-        self.toolbox.console.write('Downloaded %dKB' % (
+        self.toolbox.console.print('Downloaded %dKB' % (
                     os.path.getsize(filename) / 1000))
 
 

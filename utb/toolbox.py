@@ -124,14 +124,14 @@ class Toolbox:
             command = self.get_unique_command(args[0])
             doc = self.commands[command].__doc__
             doc = '\n'.join(line.strip() for line in doc.split('\n')[1:-1])
-            self.console.write(command, bold=True)
-            self.console.write(doc)
+            self.console.print(command, bold=True)
+            self.console.print(doc)
         else:
-            self.console.write('List of available commands')
+            self.console.print('List of available commands')
             for name in sorted(self.commands.keys()):
-                self.console.write('%-10s' % name, bold=True, end='')
                 doc = self.commands[name].__doc__.split('.')[0]
-                self.console.write(doc.strip().lower())
+                self.console.alternate('%-10s' % name, doc.strip().lower(),
+                                       start_bold=True)
 
     def command_list(self, *args):
         """
@@ -153,11 +153,11 @@ class Toolbox:
                 book.print_content(depth=1)
             return
         if args[0] == '?':
-            self.console.write(self.current_book.name, 'is currently selected')
+            self.console.print(self.current_book.name, 'is currently selected')
             return
         try:
             self.current_book = self.books[int(args[0]) - 1]
-            self.console.write(self.current_book.name, 'selected')
+            self.console.print(self.current_book.name, 'selected')
         except:
             raise Exception('invalid argument: %s' % args[0])
 
@@ -201,7 +201,7 @@ class Toolbox:
         last submissions, use the command `check` instead.
         """
         entries = int(args[0]) if args else 10
-        self.uhunt.queue(self.console, entries)
+        self.uhunt.queue(entries)
 
     def command_download(self, *args):
         """
@@ -212,7 +212,7 @@ class Toolbox:
         """
         problem = self.problemset.get_problem(*args)
         if os.path.exists(problem.filename):
-            self.console.write('File already exists')
+            self.console.print('File already exists')
         else:
             size = problem.download()
 
@@ -227,4 +227,4 @@ class Toolbox:
         problem = self.problemset.get_problem(*args)
         if not os.path.exists(problem.filename):
             self.command_download(*args)
-        self.process.open('pdfviewer', problem.filename, console=self.console)
+        self.process.open('pdfviewer', problem.filename)
