@@ -27,7 +27,7 @@ from .console import Console
 from .problem import ProblemSet
 from .process import Process
 from .settings import DEFAULT_SETTINGS
-from .submission import History
+from .submission import UserHistory
 from .uhunt import UHunt
 
 # Commands:
@@ -85,12 +85,35 @@ class Toolbox:
         self.uhunt = UHunt(self)
         self.process = Process(self)
         self.current_problem = None
-        History.load_all(self)
+        self.history = UserHistory(self)
         self.load_commands()
 
     def get(self, key, default=None):
         return (self.config.get(key) if key in self.config else
                 DEFAULT_SETTINGS.get(key, default))
+
+    def makedir(self, filename):
+        path, _ = os.path.split(filename)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    def read_json(self, filename, default=None, or_error=None):
+        if not os.path.isfile(filename):
+            if or_error:
+                raise Exception(or_error)
+            return default
+        with open(filename, 'r') as stream:
+            try:
+                return json.load(stream)
+            except json.decoder.JSONDecodeError:
+                if or_error:
+                    raise Exception(on_error)
+                return default
+
+    def write_json(self, filename, data):
+        self.makedir(filename)
+        with open(filename, 'w') as stream:
+            json.dump(data, stream)
 
     def load_commands(self):
         members = inspect.getmembers(self, lambda obj: inspect.ismethod(obj))
@@ -237,15 +260,22 @@ class Toolbox:
         password is not required.
         """
         if args:
-            self.console.print('Retrieving information...')
             self.account.set(args[0])
-            self.console.print('Updating account data...')
         if self.account.user:
             self.console.alternate('User', self.account.user,
                                    ' ID', self.account.id,
-                                   ' Name', self.account.name)
-            # self.console.print(self.get('uhunt-page').format(self.account.id))
+                                   ' Name', self.account.name,
+                                   ' Submissions', self.history.count)
         else:
             self.console.alternate('Account not defined. Type',
                                    'user `username`',
                                    'to set current user.')
+
+    def command_update(self, *args):
+        """
+        Download and update data. It includes submission data from
+        account user and statistics for all problems. Book descriptors
+        are downloaded only if they don't exist.
+        """
+        self.console.print('Retrieving submission data...')
+        self.history.update()

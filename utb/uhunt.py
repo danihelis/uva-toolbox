@@ -34,7 +34,7 @@ class UHunt:
 
     def get(self, endpoint, *params):
         try:
-            url = self.api + '/'.join([endpoint] + list(params))
+            url = self.api + '/'.join([endpoint] + list(map(str, params)))
             response = request.urlopen(url)
             return json.loads(response.read().decode('utf-8'))
         except:
@@ -70,7 +70,12 @@ class UHunt:
                     sep='  ', bold=False)
 
     def get_user(self, username):
-        userid = self.get('uname2uid/' + username)
+        userid = self.get('uname2uid', username)
         assert userid, 'username not found: %s' % username
         obj = self.get('subs-user-last/%d/0' % userid)
         return (userid, obj['name'])
+
+    def get_submissions(self, userid=None):
+        userid = userid or self.toolbox.account.id
+        assert userid, 'user account not defined'
+        return self.get('subs-user', userid)

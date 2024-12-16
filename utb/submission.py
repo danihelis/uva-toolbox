@@ -98,23 +98,39 @@ class History:
         accepted = self.get_accepted_submissions()
         return min(s.rank for s in accepted) if accepted else None
 
-    @classmethod
-    def load_all(cls, toolbox):
-        filename = os.path.join(toolbox.get('data-dir'), 'submissions.json')
-        if toolbox.problemset and os.path.isfile(filename):
-            with open(filename) as stream:
-                cls.update_all(toolbox, json.load(stream))
 
-    @classmethod
-    def reset_all(cls, toolbox):
-        for p in toolbox.problemset.problems.values():
-            p.history = cls()
+class UserHistory:
 
-    @classmethod
-    def update_all(cls, toolbox, data):
-        cls.reset_all(toolbox)
-        for entry in data['subs']:
+    def __init__(self, toolbox):
+        self.toolbox = toolbox
+        self.filename = os.path.join(toolbox.get('data-dir'),
+                                     'submissions.json')
+        data = toolbox.read_json(self.filename, {})
+        if data and data['uname'] != toolbox.account.user:
+            data = {}
+        self.populate(data)
+
+    @property
+    def count(self):
+        return len(self.data.get('subs', []))
+
+    def reset(self):
+        self.data = {}
+        for p in self.toolbox.problemset.problems.values():
+            p.history = History()
+
+    def populate(self, data):
+        self.reset()
+        self.data = data
+        for entry in data.get('subs', []):
             pid = entry[1]
             submission = Submission(entry[1], entry[4], entry[2], entry[3],
                                     entry[6])
-            toolbox.problemset.problems[pid].history.add(submission)
+            self.toolbox.problemset.problems[pid].history.add(submission)
+
+    def update(self):
+        self.populate(self.toolbox.uhunt.get_submissions())
+        self.save()
+
+    def save(self):
+        self.toolbox.write_json(self.filename, self.data)
