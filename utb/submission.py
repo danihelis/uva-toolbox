@@ -106,9 +106,13 @@ class History:
                 cls.update_all(toolbox, json.load(stream))
 
     @classmethod
-    def update_all(cls, toolbox, data):
+    def reset_all(cls, toolbox):
         for p in toolbox.problemset.problems.values():
             p.history = cls()
+
+    @classmethod
+    def update_all(cls, toolbox, data):
+        cls.reset_all(toolbox)
         for entry in data['subs']:
             pid = entry[1]
             submission = Submission(entry[1], entry[4], entry[2], entry[3],

@@ -35,9 +35,9 @@ class Console:
                         '1;' if bold else '',
                         ('4%d;' % background) if background else '',
                         color if color is not None else self.WHITE),
-                  arg, '\033[0m', sep='', end='')
+                  arg, '\033[0m', sep='', end='', flush=True)
         else:
-            print(arg, sep='', end='')
+            print(arg, sep='', end='', flush=True)
 
     def print(self, *args, bold=False, inv=False, end='\n', sep=' '):
         content = (sep.join(args) if len(args) > 1 else

@@ -228,3 +228,24 @@ class Toolbox:
         if not os.path.exists(problem.filename):
             self.command_download(*args)
         self.process.open('pdfviewer', problem.filename)
+
+    def command_user(self, *args):
+        """
+        Display account username. To display information about the
+        current account, type the command without argument. To set the
+        account to a specific user, type its username as argument. The
+        password is not required.
+        """
+        if args:
+            self.console.print('Retrieving information...')
+            self.account.set(args[0])
+            self.console.print('Updating account data...')
+        if self.account.user:
+            self.console.alternate('User', self.account.user,
+                                   ' ID', self.account.id,
+                                   ' Name', self.account.name)
+            # self.console.print(self.get('uhunt-page').format(self.account.id))
+        else:
+            self.console.alternate('Account not defined. Type',
+                                   'user `username`',
+                                   'to set current user.')

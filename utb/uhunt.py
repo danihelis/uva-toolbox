@@ -47,7 +47,7 @@ class UHunt:
         self.toolbox.console.print('%4s' % 'Time',
                                    '%-30s' % 'Problem',
                                    '%7s' % 'Run',
-                                   '%-18s' % 'Verdict',
+        '%-18s' % 'Verdict',
                                    'User',
                                    bold=True, sep='  ')
         for entry in data[:entries]:
@@ -68,3 +68,9 @@ class UHunt:
                     '%-18s' % sub.verdict[1][:18],
                     user,
                     sep='  ', bold=False)
+
+    def get_user(self, username):
+        userid = self.get('uname2uid/' + username)
+        assert userid, 'username not found: %s' % username
+        obj = self.get('subs-user-last/%d/0' % userid)
+        return (userid, obj['name'])
