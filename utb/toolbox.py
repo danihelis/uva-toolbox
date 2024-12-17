@@ -47,9 +47,9 @@ from .uhunt import UHunt
 # ac cept = mark as accepted, removing from workbench
 # re move = remove problem from workbench
 #
-# us er = modify account data
+# !  us er = modify account data
 # p assword = define user password
-# up date = ...
+# !  up date = ...
 #
 # uh unt = open uHunt web
 # ud ebug = open uDebug web
@@ -279,3 +279,14 @@ class Toolbox:
         """
         self.console.print('Retrieving submission data...')
         self.history.update()
+
+    def command_volume(self, *args):
+        """
+        List all problems from a volume set. To see an overview of all
+        volumes, type the command without an argument. To list the
+        problems of a specific volume, type its number as argument.
+        """
+        try:
+            self.problemset.list_volumes(int(args[0]) if args else None)
+        except ValueError:
+            raise Exception("invalid volume number: %s", args[0])

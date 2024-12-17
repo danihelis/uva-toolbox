@@ -40,7 +40,7 @@ class Console:
             print(arg, sep='', end='', flush=True)
 
     def print(self, *args, bold=False, inv=False, end='\n', sep=' '):
-        content = (sep.join(args) if len(args) > 1 else
+        content = (sep.join(map(str, args)) if len(args) > 1 else
                    args[0] if args else '')
         self.write(content, bold=bold, color=self.BLACK if inv else None,
                    background=self.WHITE if inv else None)

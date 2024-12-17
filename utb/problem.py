@@ -21,7 +21,7 @@ import os
 import urllib
 
 from .submission import History
-from .utils import to_roman
+
 
 class Problem:
     DIFFICULTY = [
@@ -61,7 +61,7 @@ class Problem:
 
     def print(self, short=False, star=False):
         if not short:
-            self.toolbox.console.print('Volume', to_roman(self.volume),
+            self.toolbox.console.print('Volume %d' % self.volume,
                                        bold=True)
         self.toolbox.console.print('%6d' % self.number, bold=True, end=' ')
         verdict = self.history.verdict
@@ -203,3 +203,42 @@ class ProblemSet:
         assert number, 'no problem currently selected'
         self.last_problem = self.list[number]
         return self.last_problem
+
+    def list_volumes(self, volume=None):
+        if not volume:
+            volumes = sorted(self.volumes.keys())
+            half = math.ceil(len(volumes) / 2)
+            self.toolbox.console.print('List of volume sets', bold=True)
+            for index in range(half):
+                for vol_index in [index, index + half]:
+                    if vol_index < len(volumes):
+                        volume = volumes[vol_index]
+                        label = ' %3d' % volume
+                        total = len(self.volumes[volume])
+                        done = sum(1 for p in self.volumes[volume]
+                                   if p.history.accepted)
+                        bold = False
+                    else:
+                        label = 'TOTAL'
+                        total = len(self.problems)
+                        done = sum(1 for p in self.problems.values()
+                                   if p.history.accepted)
+                        bold = True
+                    self.toolbox.console.write('%-6s' % label, bold=True)
+                    self.toolbox.console.bar(done, total, 26, bold=bold)
+                    self.toolbox.console.write(' %3d%%' % round(
+                                done * 100 / total), bold=bold)
+                    if vol_index < half:
+                        self.toolbox.console.write('    ')
+                self.toolbox.console.print()
+        else:
+            title = 'Volume %d ' % volume
+            self.toolbox.console.print(title, end='·' * (60 - len(title)))
+            total = len(self.volumes[volume])
+            done = sum(1 for p in self.volumes[volume] if p.history.accepted)
+            self.toolbox.console.write(' %4d ' % total)
+            self.toolbox.console.bar(done, total, 9, bold=True)
+            self.toolbox.console.print(' %3d%%' % (done * 100 / total),
+                                       bold=True)
+            for problem in self.volumes[volume]:
+                problem.print(short=True, star=problem.chapters)
