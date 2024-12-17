@@ -58,7 +58,7 @@ from .uhunt import UHunt
 # !  b ook = list of uHunt books
 # !  l ist = show problems
 # !  i nfo = info for problem
-# v olume = show volumes
+# !  v olume = show volumes
 # ra nk = rank on UVA
 #
 # ex it = ...
@@ -158,9 +158,9 @@ class Toolbox:
 
     def command_list(self, *args):
         """
-        List all chapters of the current book. To see the divisions of a
-        chapter, type the chapter or the section entry, separating each
-        number by space or dot. Example:
+        List all chapters from the current book. To see the divisions of
+        a chapter, type the chapter or the section entry, separating
+        each number by space or dot. Example:
             >>> list 2.3.1
         """
         self.current_book.get_section(*args).print_content(depth=2)
@@ -195,11 +195,11 @@ class Toolbox:
 
     def command_next(self, *args):
         """
-        Choose randomly the next problem to solve. The next problem is
-        selected from the easiest problems listed in the current book.
-        To choose a problem from a specific list, type its index as
-        argument. To choose a problem from the entire problemset, type
-        `-` as argument.
+        Choose the next problem to solve. The next problem is selected
+        from the easiest problems listed in the current book. To choose
+        a problem from a specific list, type its index as argument. To
+        choose a problem from the entire problemset, type `-` as
+        argument.
         """
         choices, level, pop = None, None, None
         problems = (self.problemset.list.values() if args and args[0] == '-'
@@ -218,7 +218,7 @@ class Toolbox:
 
     def command_queue(self, *args):
         """
-        List the online judge's live queue. It displays the last ten
+        Show live queue from online judge. It displays the last ten
         submissions sent to the judge by any user. To list more than ten
         entries up to 100, type a number as argument. To see only your
         last submissions, use the command `check` instead.
