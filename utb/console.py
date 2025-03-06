@@ -1,5 +1,5 @@
 # utb: UVa Online Judge toolbox
-# Copyright (C) 2024  Daniel Donadon
+# Copyright (C) 2024-2025  Daniel Donadon
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 import traceback
 
 COPYRIGHT = """utb (UVa Online Judge toolbox)
-Copyright (C) 2024  Daniel Donadon
+Copyright (C) 2024-2025  Daniel Donadon
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 """
