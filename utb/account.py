@@ -46,3 +46,7 @@ class Account:
                 self.toolbox.history.update()
             else:
                 self.toolbox.history.reset()
+
+    def as_kwargs(self):
+        return {f'account_{ field }': getattr(self, field, None)
+                for field in self.FIELDS}

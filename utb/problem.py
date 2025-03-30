@@ -59,6 +59,10 @@ class Problem:
         # return chr(ord('A') + self.popularity_level)
         return chr(ord('A') + 10 - min(10, int(math.log(max(1, self.dacu)))))
 
+    def as_kwargs(self):
+        fields = ['id', 'number', 'name', 'volume']
+        return {f'problem_{ key }': getattr(self, key, None) for key in fields}
+
     def print(self, short=False, star=False):
         if not short:
             self.toolbox.console.print('Volume %d' % self.volume,
@@ -144,8 +148,8 @@ class ProblemSet:
 
     def __init__(self, toolbox):
         self.toolbox = toolbox
-        self.problems = {}
-        self.list = {}
+        self.problems = {} # by internal id
+        self.list = {} # by number from 100 to 11799
         self.volumes = {}
         self.last_problem = None
         filename = os.path.join(toolbox.get('data-dir'), 'problemset.json')
@@ -193,14 +197,19 @@ class ProblemSet:
         for p in self.problems.values():
             p.level = level[p.delta]
 
-    def get_problem(self, *args):
-        number = self.toolbox.current_problem
-        if args and args[0] == '-':
+    def get_problem(self, *args, accept_none=False, ignore_current=False):
+        if not args:
+            if not ignore_current and self.toolbox.workbench.problem:
+                return self.toolbox.workbench.problem
+            if accept_none:
+                return None
+            raise Exception('no problem specified' if ignore_current
+                            else 'no problem currently selected')
+        elif args[0] == '-':
             assert self.last_problem, 'last problem not set yet'
             number = self.last_problem.number
-        elif args:
+        else:
             number = int(args[0])
-        assert number, 'no problem currently selected'
         self.last_problem = self.list[number]
         return self.last_problem
 

@@ -1,5 +1,8 @@
 *.pyc
 *.swp
 
+utb.yaml
+
 .pdf/
 .data/
+problem/

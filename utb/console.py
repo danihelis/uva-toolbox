@@ -95,10 +95,17 @@ class Console:
         bold = False
         self.alternate('Type', 'h', 'or', 'help',
                        'for a list of available commands')
-        prompt = ' utb '
         while not self.quit:
-            accent = '░▒▓'
-            self.print(prompt + accent, inv=True, end=' ')
+            prompt = ' utb '
+            if self.toolbox.workbench.problem:
+                problem = self.toolbox.current_problem
+                status = (' ✓' if problem.history.accepted else
+                          ' ✗' if problem.history.verdict[0] is not None else
+                          '')
+                prompt = f' { problem.number }{ status } │ { prompt.strip() } '
+            if self.accept_color:
+                prompt += '░▒▓'
+            self.print(prompt, inv=True, end=' ')
             try:
                 line = input().strip()
                 self.execute(line)

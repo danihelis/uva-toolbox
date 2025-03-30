@@ -47,7 +47,7 @@ class UHunt:
         self.toolbox.console.print('%4s' % 'Time',
                                    '%-30s' % 'Problem',
                                    '%7s' % 'Run',
-        '%-18s' % 'Verdict',
+                                   '%-18s' % 'Verdict',
                                    'User',
                                    bold=True, sep='  ')
         for entry in data[:entries]:

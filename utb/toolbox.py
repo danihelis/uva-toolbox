@@ -29,14 +29,16 @@ from .process import Process
 from .settings import DEFAULT_SETTINGS
 from .submission import UserHistory
 from .uhunt import UHunt
+from .utils import trim
+from .workbench import Workbench
 
 # Commands:
 #
 # !  n ext = choose next problem to solve
 # !  d ownload = download statement
 # !  o pen = download PDF and open it
-# se lect = list open problems or select one
-# ad d = put problem into workbench
+# !  se lect = list open problems or select one
+# !  ad d = put problem into workbench
 # ed it = edit test case
 # co mpile = ...
 # t est = ...
@@ -61,7 +63,7 @@ from .uhunt import UHunt
 # !  v olume = show volumes
 # ra nk = rank on UVA
 #
-# ex it = ...
+# !  ex it = ...
 
 
 class Toolbox:
@@ -84,11 +86,20 @@ class Toolbox:
         self.problemset = ProblemSet(self)
         self.uhunt = UHunt(self)
         self.process = Process(self)
-        self.current_problem = None
         self.history = UserHistory(self)
+        self.workbench = Workbench(self)
         self.load_commands()
 
+    @property
+    def current_problem(self):
+        return self.workbench.problem
+
     def get(self, key, default=None):
+        return (self.config.get(key) if key in self.config else
+                DEFAULT_SETTINGS.get(key, default))
+
+    def get_language(self, key, default=None):
+        key = '%s-%s' % (self.get('language'), key)
         return (self.config.get(key) if key in self.config else
                 DEFAULT_SETTINGS.get(key, default))
 
@@ -141,12 +152,11 @@ class Toolbox:
     def command_help(self, *args):
         """
         See the help entry for a command. To see a list of all available
-        commands, type the command without argument.
+        commands, type the command without arguments.
         """
         if args:
             command = self.get_unique_command(args[0])
-            doc = self.commands[command].__doc__
-            doc = '\n'.join(line.strip() for line in doc.split('\n')[1:-1])
+            doc = trim(self.commands[command].__doc__)
             self.console.print(command, bold=True)
             self.console.print(doc)
         else:
@@ -168,7 +178,7 @@ class Toolbox:
     def command_book(self, *args):
         """
         Select which book will be used. To list all books available,
-        type the command without argument. To select a book, type its
+        type the command without arguments. To select a book, type its
         number. To see which book is currently selected, type `?`.
         """
         if not args:
@@ -187,9 +197,9 @@ class Toolbox:
     def command_info(self, *args):
         """
         Show information about a problem. To show information about the
-        current problem, type the command without argument.  To show
+        current problem, type the command without arguments.  To show
         information about a specific problem, type its number.  To show
-        information about the last problem, type `-`.
+        information about the previous problem, type `-`.
         """
         self.problemset.get_problem(*args).print()
 
@@ -229,9 +239,9 @@ class Toolbox:
     def command_download(self, *args):
         """
         Download a problem's statement. To download the statement of the
-        current problem, type the command without argument.  To download
-        a specific problem, type its number.  To download the last
-        problem, type `-`.
+        current problem, type the command without arguments.  To
+        download a specific problem, type its number.  To download the
+        previous problem, type `-`.
         """
         problem = self.problemset.get_problem(*args)
         if os.path.exists(problem.filename):
@@ -243,9 +253,9 @@ class Toolbox:
         """
         Open a problem's statement in a pdf viewer. If the statement
         file does not exist, it is downloaded first.  To open the
-        current problem, type the command without argument.  To open a
-        specific problem, type its number.  To open the last problem,
-        type `-`.
+        current problem, type the command without arguments.  To open
+        a specific problem, type its number.  To open the previous
+        problem, type `-`.
         """
         problem = self.problemset.get_problem(*args)
         if not os.path.exists(problem.filename):
@@ -255,7 +265,7 @@ class Toolbox:
     def command_user(self, *args):
         """
         Display account username. To display information about the
-        current account, type the command without argument. To set the
+        current account, type the command without arguments. To set the
         account to a specific user, type its username as argument. The
         password is not required.
         """
@@ -283,10 +293,47 @@ class Toolbox:
     def command_volume(self, *args):
         """
         List all problems from a volume set. To see an overview of all
-        volumes, type the command without an argument. To list the
+        volumes, type the command without arguments. To list the
         problems of a specific volume, type its number as argument.
         """
         try:
             self.problemset.list_volumes(int(args[0]) if args else None)
         except ValueError:
             raise Exception("invalid volume number: %s", args[0])
+
+    def command_add(self, *args):
+        """
+        Start solving a new problem. The problem is added to the list of
+        problems being solved and is selected as the current problem.
+        A source code file for the problem will be created and opened.
+        To add a specific problem, type its number. To add the previous
+        problem, type `-`.
+        """
+        problem = self.problemset.get_problem(*args, ignore_current=True)
+        self.workbench.add(problem)
+        self.workbench.select(problem)
+        self.workbench.edit()
+
+    def command_edit(self, *args):
+        """
+        Edit a source code or a test case. This operation opens the
+        default text editor with the required file. There must be
+        a problem currently being solved (see `add` and `select`). To
+        edit the source code for the current problem, type the command
+        without arguments. To edit a test case, type its letter as
+        argument. To add a new test case, type `+`. A letter will be
+        assigned to the test case, starting from "a".
+        """
+        self.workbench.edit(*args)
+
+    def command_select(self, *args):
+        """
+        Change the current problem being solved. The problem must have
+        been added previously with the command `add`. To list all
+        problems that have been added, type the command without
+        arguments. To select a specific problem, type its number as
+        argument. To select the previous problem, type `-`.
+        """
+        problem = self.problemset.get_problem(*args, accept_none=True,
+                                              ignore_current=True)
+        self.workbench.select(problem)
