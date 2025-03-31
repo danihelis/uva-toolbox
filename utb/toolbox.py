@@ -337,3 +337,14 @@ class Toolbox:
         problem = self.problemset.get_problem(*args, accept_none=True,
                                               ignore_current=True)
         self.workbench.select(problem)
+
+    def command_remove(self, *args):
+        """
+        Remove a problem that is being solved. All data related to the
+        problem will be permanently removed, except for its archived
+        solution (see `archive`). The problem's number must be typed as
+        argument.
+        """
+        problem = self.problemset.get_problem(*args, ignore_current=True)
+        assert problem in self.workbench.works, 'problem is not being solved'
+        self.workbench.remove(problem)

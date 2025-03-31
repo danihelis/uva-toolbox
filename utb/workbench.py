@@ -51,16 +51,18 @@ class Workbench:
         dir = os.path.join(self.dir, str(problem.number))
         if not os.path.isdir(dir):
             os.makedirs(dir)
+            self.toolbox.console.alternate('Adding problem ', problem.number,
+                                           ': %s' % problem.name, sep='')
         self.works.add(problem)
 
     def select(self, problem=None):
-        if not problem:
+        if not problem and not self.works:
+            self.toolbox.console.print('No problem is currently being solved')
+        elif not problem:
             self.toolbox.console.print('Problems being currently solved',
                                        bold=True)
             for problem in self.works:
                 problem.print(short=True, star=problem == self.problem)
-            if not self.works:
-                self.toolbox.console.print('Empty list')
         else:
             assert problem in self.works, ('problem is not being solved: '
                                            'add the problem first')
@@ -82,3 +84,23 @@ class Workbench:
                 template = self.toolbox.get_language('template', '')
                 stream.write(trim(template.format(**kwargs)))
         self.toolbox.process.open('editor', filename)
+
+    def remove(self, problem, force=False):
+        assert problem in self.works, 'problem is not being solved'
+        if not force:
+            self.toolbox.console.alternate('Removing problem ', problem.number,
+                                           ': %s' % problem.name, sep='')
+            self.toolbox.console.alternate('Type', 'remove', 'to confirm:',
+                                           end=' ')
+            try:
+                confirm = input()
+                assert confirm == 'remove'
+            except (AssertionError, KeyboardInterrupt):
+                self.toolbox.console.print('Operation aborted')
+                return
+        dir = os.path.join(self.dir, str(problem.number))
+        shutil.rmtree(dir)
+        self.works.remove(problem)
+        if problem == self.problem:
+            self.problem = None
+        self.toolbox.console.print('Problem removed')
