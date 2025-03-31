@@ -26,10 +26,11 @@ class Workbench:
     def __init__(self, toolbox):
         self.toolbox = toolbox
         self.works = set()
-        self.dir = toolbox.get('problem-dir')
+        self.base_dir = toolbox.get('problem-dir')
+        self._filename = os.path.join(self.base_dir, self.current_filename)
+        toolbox.makedir(self._filename)
         self.problem = None
         self.load()
-        self._filename = os.path.join(self.dir, self.current_filename)
         try:
             current = toolbox.read_json(self._filename, default=None)
             self.select(self.toolbox.problemset.list[current])
@@ -37,10 +38,8 @@ class Workbench:
             pass
 
     def load(self):
-        if not os.path.isdir(self.dir):
-            os.makedirs(self.dir)
-        for filename in os.listdir(self.dir):
-            if os.path.isdir(os.path.join(self.dir, filename)):
+        for filename in os.listdir(self.base_dir):
+            if os.path.isdir(os.path.join(self.base_dir, filename)):
                 try:
                     problem = self.toolbox.problemset.list[int(filename)]
                     self.add(problem)
@@ -48,7 +47,7 @@ class Workbench:
                     pass
 
     def add(self, problem):
-        dir = os.path.join(self.dir, str(problem.number))
+        dir = self.dir(problem)
         if not os.path.isdir(dir):
             os.makedirs(dir)
             self.toolbox.console.alternate('Adding problem ', problem.number,
@@ -70,18 +69,33 @@ class Workbench:
                 self.toolbox.write_json(self._filename, problem.number)
             self.problem = problem
 
-    def get_filename(self, filename):
-        return os.path.join(self.dir, str(self.problem.number), filename)
+    def dir(self, problem=None):
+        if not problem:
+            problem = self.problem
+        return os.path.join(self.base_dir, str(problem.number))
 
-    def edit(self):
-        assert self.problem, 'there is no problem selected'
+    def get_filename(self, filename, problem=None):
+        return os.path.join(self.dir(problem), filename)
+
+    @property
+    def source(self):
         kwargs = self.toolbox.account.as_kwargs()
         kwargs.update(self.problem.as_kwargs())
         source = self.toolbox.get_language('source').format(**kwargs)
-        filename = self.get_filename(source)
+        return self.get_filename(source)
+
+    @property
+    def exe(self):
+        return self.get_filename(str(self.problem.number))
+
+    def edit(self):
+        assert self.problem, 'there is no problem selected'
+        filename = self.source
         if not os.path.isfile(filename):
             with open(filename, 'w') as stream:
                 template = self.toolbox.get_language('template', '')
+                kwargs = self.toolbox.account.as_kwargs()
+                kwargs.update(self.problem.as_kwargs())
                 stream.write(trim(template.format(**kwargs)))
         self.toolbox.process.open('editor', filename)
 
@@ -98,9 +112,18 @@ class Workbench:
             except (AssertionError, KeyboardInterrupt):
                 self.toolbox.console.print('Operation aborted')
                 return
-        dir = os.path.join(self.dir, str(problem.number))
-        shutil.rmtree(dir)
+        shutil.rmtree(self.dir(problem))
         self.works.remove(problem)
         if problem == self.problem:
             self.problem = None
         self.toolbox.console.print('Problem removed')
+
+    def compile(self):
+        source = self.source
+        assert os.path.isfile(source), f'source code not found: { source }'
+        exe = self.exe
+        if os.path.isfile(exe):
+            os.remove(exe)
+        result = self.toolbox.process.run('compile', source=source, exe=exe,
+                                          language=True)
+        return result == 0

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import shlex
 import subprocess
 
 class Process:
@@ -22,8 +23,36 @@ class Process:
     def __init__(self, toolbox):
         self.toolbox = toolbox
 
-    def open(self, command, *args, **kwords):
-        exec_params = self.toolbox.get(command).format(*args, **kwords).split()
-        self.toolbox.console.alternate('Executing', ' '.join(exec_params))
-        process = subprocess.Popen(exec_params, stdout=subprocess.DEVNULL,
+    def open(self, command, *args, **kwargs):
+        command = self.toolbox.get(command).format(*args, **kwargs)
+        params = shlex.split(command)
+        self.toolbox.console.alternate('Executing', command)
+        process = subprocess.Popen(params, stdout=subprocess.DEVNULL,
                                    stderr=subprocess.DEVNULL)
+
+    def run(self, command, *args, dir=None, echo=True, shell=True, timeout=None,
+            language=False, **kwargs):
+        method = 'get_language' if language else 'get'
+        command = getattr(self.toolbox, method)(command).format(*args, **kwargs)
+        self.toolbox.console.alternate('Executing', command)
+        if dir is None:
+            dir = os.path.abspath('.')
+        output = subprocess.PIPE if echo else subprocess.DEVNULL
+        try:
+            process = subprocess.run(
+                    command, shell=shell, check=False, stdout=output,
+                    stderr=subprocess.STDOUT, text=True, cwd=dir,
+                    timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            self.toolbox.console.print('Timeout expired')
+            return -1
+        if echo:
+            if process.stdout:
+                self.toolbox.console.write(process.stdout)
+            if process.returncode == 0:
+                self.toolbox.console.print('Success', bold=True)
+            else:
+                self.toolbox.console.print('Command ended with error status',
+                                           bold=True)
+        return process.returncode

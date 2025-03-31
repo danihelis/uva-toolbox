@@ -348,3 +348,11 @@ class Toolbox:
         problem = self.problemset.get_problem(*args, ignore_current=True)
         assert problem in self.workbench.works, 'problem is not being solved'
         self.workbench.remove(problem)
+
+    def command_compile(self, *args):
+        """
+        Compile the current problem's source code. The command line to
+        compile is defined in the settings. The default command is the
+        same used by UVa Online Judge.
+        """
+        self.workbench.compile()
