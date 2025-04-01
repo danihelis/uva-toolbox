@@ -82,12 +82,32 @@ class Workbench:
     def source(self):
         kwargs = self.toolbox.account.as_kwargs()
         kwargs.update(self.problem.as_kwargs())
-        source = self.toolbox.get_language('source').format(**kwargs)
-        return self.get_filename(source)
+        return self.toolbox.get_language('source').format(**kwargs)
+
+    @property
+    def source_path(self):
+        return self.get_filename(self.source)
+
+    def check_source_file(self, exception=True):
+        if not os.path.isfile(self.source_path):
+            if exception:
+                raise Exception(f'source not found: { self.source }')
+            return False
+        return True
 
     @property
     def exe(self):
-        return self.get_filename(str(self.problem.number))
+        exe = self.toolbox.get_language('exe')
+        if not exe:
+            return None
+        kwargs = self.toolbox.account.as_kwargs()
+        kwargs.update(self.problem.as_kwargs())
+        return exe.format(**kwargs)
+
+    @property
+    def exe_path(self):
+        exe = self.exe
+        return self.get_filename(exe) if exe else None
 
     def get_testcases(self):
         testcases = {}
@@ -100,14 +120,13 @@ class Workbench:
 
     def edit(self):
         assert self.problem, 'there is no problem selected'
-        filename = self.source
-        if not os.path.isfile(filename):
-            with open(filename, 'w') as stream:
+        if not self.check_source_file(exception=False):
+            with open(self.source_path, 'w') as stream:
                 template = self.toolbox.get_language('template', '')
                 kwargs = self.toolbox.account.as_kwargs()
                 kwargs.update(self.problem.as_kwargs())
                 stream.write(trim(template.format(**kwargs)))
-        self.toolbox.process.open('editor', filename)
+        self.toolbox.process.open('editor', self.source_path)
 
     def edit_test(self, test=None):
         assert self.problem, 'there is no problem selected'
@@ -140,20 +159,26 @@ class Workbench:
         self.toolbox.console.print('Problem removed')
 
     def compile(self):
-        assert os.path.isfile(self.source), f'source not found: { self.source }'
-        if os.path.isfile(self.exe):
-            os.remove(self.exe)
-        result = self.toolbox.process.run('compile', source=self.source,
-                                          exe=self.exe, language=True)
+        if self.exe is None:
+            self.toolbox.console.print('There is no need to compile')
+            return
+        self.check_source_file()
+        if os.path.isfile(self.exe_path):
+            os.remove(self.exe_path)
+        result = self.toolbox.process.run(
+                'compile', source=self.source, exe=self.exe, language=True,
+                dir=self.dir())
         return result == 0
 
     def test(self, *suite):
-        assert os.path.isfile(self.source), f'source not found: { self.source }'
-        source_date = os.path.getctime(self.source)
-        exe_date = os.path.getctime(self.exe) if os.path.isfile(self.exe) else 0
-        if exe_date < source_date:
-            if not self.compile():
-                return
+        self.check_source_file()
+        if self.exe is not None:
+            source_date = os.path.getctime(self.source_path)
+            exe_date = (os.path.getctime(self.exe_path)
+                        if os.path.isfile(self.exe_path) else 0)
+            if exe_date < source_date:
+                if not self.compile():
+                    return
         testcases = self.get_testcases()
         for test in suite:
             if test not in testcases:
@@ -164,19 +189,20 @@ class Workbench:
         self.toolbox.console.print('Running tests with a time limit of %d ms'
                                    % self.problem.time_limit)
         timeout = self.problem.time_limit / 1000
-        timefile = self.get_filename('.time')
         success = True
         for test in suite if suite else sorted(testcases.keys()):
             kwargs = {'exe': self.exe,
-                      'time': timefile,
-                      'input': self.get_filename(f'{ test }.in'),
-                      'output': self.get_filename(f'{ test }.out'),
-                      'answer': self.get_filename(f'{ test }.ans'),
-                      'error': self.get_filename(f'{ test }.err')}
+                      'time': '.time',
+                      'input': f'{ test }.in',
+                      'output': f'{ test }.out',
+                      'answer': f'{ test }.ans',
+                      'error': f'{ test }.err'}
             kwargs['run'] = self.toolbox.get_language('run').format(**kwargs)
             self.toolbox.console.alternate('Test ', test, '...', sep='', end='')
             code = self.toolbox.process.run(
-                    'time', echo=False, timeout=timeout, **kwargs)
+                    'time', echo=False, dir=self.dir(), timeout=timeout,
+                    **kwargs)
+            timefile = self.get_filename(kwargs['time'])
             if os.path.isfile(timefile):
                 with open(timefile) as stream:
                     time = stream.readline()[:-1]
@@ -194,12 +220,12 @@ class Workbench:
                     self.toolbox.console.alternate('  ', 'Okay', end='')
                 else:
                     result = self.toolbox.process.run(
-                            'diff', echo=False, **kwargs)
+                            'diff', echo=False, dir=self.dir(), **kwargs)
                     success = success and result == 0
                     self.toolbox.console.alternate(
                             '  ', 'Wrong answer' if result else 'Accepted',
                             end='')
-                if os.path.getsize(kwargs['error']):
+                if os.path.getsize(self.get_filename(kwargs['error'])):
                     success = False
                     self.toolbox.console.print('  (stderr output)', end='')
             self.toolbox.console.print()
@@ -212,7 +238,7 @@ class Workbench:
         for file in sorted(os.listdir(self.dir())):
             if not file.startswith('.'):
                 path = self.get_filename(file)
-                bold = (path == source or file.endswith('.in')
+                bold = (file == source or file.endswith('.in')
                         or file.endswith('.ans'))
                 date = datetime.datetime.fromtimestamp(os.path.getctime(path))
                 self.toolbox.console.print(date.strftime('%b %d %Y %H:%M:%S'),

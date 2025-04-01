@@ -36,8 +36,6 @@ class Process:
         command = getattr(self.toolbox, method)(command).format(*args, **kwargs)
         if echo:
             self.toolbox.console.alternate('Executing', command)
-        if dir is None:
-            dir = os.path.abspath('.')
         output = subprocess.PIPE if echo else subprocess.DEVNULL
         try:
             process = subprocess.run(

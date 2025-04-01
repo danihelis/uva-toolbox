@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import getpass
 import json
 import os
 
@@ -50,3 +51,9 @@ class Account:
     def as_kwargs(self):
         return {f'account_{ field }': getattr(self, field, None)
                 for field in self.FIELDS}
+
+    def set_password(self):
+        assert self.user, 'user not defined'
+        self.toolbox.console.alternate('Username:', self.user)
+        self.password = getpass.getpass()
+        self.save()

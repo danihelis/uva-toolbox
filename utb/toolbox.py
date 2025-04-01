@@ -30,6 +30,7 @@ from .settings import DEFAULT_SETTINGS
 from .submission import UserHistory
 from .uhunt import UHunt
 from .utils import trim
+from .uva import UVa
 from .workbench import Workbench
 
 # Commands:
@@ -39,15 +40,15 @@ from .workbench import Workbench
 # !  o pen = download PDF and open it
 # !  se lect = list open problems or select one
 # !  ad d = put problem into workbench
-# ed it = edit test case
-# co mpile = ...
-# t est = ...
-# m ake = "compile & test"
+# !  ed it = edit test case
+# !  co mpile = ...
+# !  t est = ...
 # su bmit = ...
-# q ueue = see submission queue
+# !  q ueue = see submission queue
 # ch eck = list of last submissions
 # ac cept = mark as accepted, removing from workbench
-# re move = remove problem from workbench
+# => ar chive = ''
+# !  re move = remove problem from workbench
 #
 # !  us er = modify account data
 # p assword = define user password
@@ -85,6 +86,7 @@ class Toolbox:
         self.current_book = self.books[-1]
         self.problemset = ProblemSet(self)
         self.uhunt = UHunt(self)
+        self.uva = UVa(self)
         self.process = Process(self)
         self.history = UserHistory(self)
         self.workbench = Workbench(self)
@@ -380,3 +382,12 @@ class Toolbox:
         and the test case files are highlighted.
         """
         self.workbench.files()
+
+    def command_submit(self, *args):
+        """
+        Submit the solution to online judge. In order to connect to the
+        online judge server, a valid account with password is required
+        (see `password`). All submissions and evaluation scores can be
+        checked with the commands `queue` and `check`.
+        """
+        self.uva.submit()

@@ -17,6 +17,7 @@
 DEFAULT_SETTINGS = {
     # General parameters
     'accept-color': True,
+    'black-background': True,
     'debug': False,
     'data-dir': '.data',
     'pdf-dir': '.pdf',
@@ -24,7 +25,10 @@ DEFAULT_SETTINGS = {
     'solution-dir': 'solution',
     'copy-solution': True,
     'erase-after-accepted': True,
-    'language': 'c',
+    'language': 'c', # {'c', 'cpp', 'python', 'java', 'pascal'}
+
+    # Hacks
+    'force-cpp-on-ansi-c': False,
 
     # External parameters
     'number-books': 4,
@@ -39,38 +43,40 @@ DEFAULT_SETTINGS = {
     'editor': 'gnome-text-editor {}',
     'diff': 'diff -q {output} {answer} > /dev/null',
     'time': '/usr/bin/time -f "%E" -o {time} {run}',
-    'c-compile': 'gcc -pipe -ansi -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
-    'c-run': '{exe} < {input} > {output} 2> {error}',
-    'cpp-compile': 'gcc -pipe -std=c++11 -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
-    'cpp-run': '{exe} < {input} > {output} 2> {error}',
 
-    # Solution templates
     'c-source': '{problem_number}.c',
+    'c-exe': '{problem_number}',
+    'c-compile': 'gcc -pipe -ansi -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
+    'c-run': './{exe} < {input} > {output} 2> {error}',
     'c-template': """
         /* {problem_number}
          * {problem_name}
          * By {account_name}
          */
-        #include <stdlib.h>
-        #include <stdio.h>
-        #include <string.h>
-        #include <ctype.h>
         #include <assert.h>
+        #include <ctype.h>
         #include <math.h>
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <string.h>
 
         /* Main function */
         int main() {{
             return EXIT_SUCCESS;
         }}
         """,
+
     'cpp-source': '{problem_number}.cpp',
+    'cpp-exe': '{problem_number}',
+    'cpp-compile': 'gcc -pipe -std=c++11 -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
+    'cpp-run': './{exe} < {input} > {output} 2> {error}',
     'cpp-template': """
         /* {problem_number}
          * {problem_name}
          * By {account_name}
          */
-        #include <cstdlib>
         #include <cmath>
+        #include <cstdlib>
         #include <iostream>
 
         using namespace std;
@@ -79,5 +85,39 @@ DEFAULT_SETTINGS = {
         int main() {{
             return EXIT_SUCCESS;
         }}
+        """,
+
+    'java-source': '{problem_number}.java',
+    'java-exe': 'Main.class',
+    'java-compile': 'javac {source} -d {dir} -source 8 -target 8 -Xlint:-options',
+    'java-run': 'java {exe} < {input} > {output} 2> {error}',
+    'java-template': """
+        /* {problem_number}
+         * {problem_name}
+         * @author {account_name}
+         */
+        import java.math.*;
+        import java.util.*;
+
+        class Main {{
+
+            /* Main method */
+            public static void main(String[] args) throws Exception {{
+                java.io.PrintStream out = System.out;
+                Scanner in = new Scanner(System.in);
+            }}
+        }}
+        """,
+
+    'python-source': '{problem_number}.py',
+    'python-run': 'python {source} < {input} > {output} 2> {error}',
+    'python-template': """
+        # {problem_number}
+        # {problem_name}
+        # By {account_name}
+        import math
+
+        # Main code
+        ...
         """,
 }
