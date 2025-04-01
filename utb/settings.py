@@ -37,7 +37,7 @@ DEFAULT_SETTINGS = {
     # Executables
     'pdfviewer': 'evince {}',
     'editor': 'gnome-text-editor {}',
-    'diff': 'diff -q {first} {second} > /dev/null',
+    'diff': 'diff -q {output} {answer} > /dev/null',
     'time': '/usr/bin/time -f "%E" -o {time} {run}',
     'c-compile': 'gcc -pipe -ansi -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
     'c-run': '{exe} < {input} > {output} 2> {error}',

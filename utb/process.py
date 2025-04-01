@@ -34,7 +34,8 @@ class Process:
             language=False, **kwargs):
         method = 'get_language' if language else 'get'
         command = getattr(self.toolbox, method)(command).format(*args, **kwargs)
-        self.toolbox.console.alternate('Executing', command)
+        if echo:
+            self.toolbox.console.alternate('Executing', command)
         if dir is None:
             dir = os.path.abspath('.')
         output = subprocess.PIPE if echo else subprocess.DEVNULL
@@ -45,7 +46,8 @@ class Process:
                     timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.toolbox.console.print('Timeout expired')
+            if echo:
+                self.toolbox.console.print('Timeout expired')
             return -1
         if echo:
             if process.stdout:

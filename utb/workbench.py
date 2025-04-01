@@ -88,6 +88,15 @@ class Workbench:
     def exe(self):
         return self.get_filename(str(self.problem.number))
 
+    def get_testcases(self):
+        testcases = {}
+        for input in os.listdir(self.dir()):
+            if input.endswith('.in'):
+                testcase = input[:-3]
+                answer = self.get_filename(f'{ testcase }.ans')
+                testcases[testcase] = os.path.isfile(answer)
+        return testcases
+
     def edit(self):
         assert self.problem, 'there is no problem selected'
         filename = self.source
@@ -119,11 +128,65 @@ class Workbench:
         self.toolbox.console.print('Problem removed')
 
     def compile(self):
-        source = self.source
-        assert os.path.isfile(source), f'source code not found: { source }'
-        exe = self.exe
-        if os.path.isfile(exe):
-            os.remove(exe)
-        result = self.toolbox.process.run('compile', source=source, exe=exe,
-                                          language=True)
+        assert os.path.isfile(self.source), f'source not found: { self.source }'
+        if os.path.isfile(self.exe):
+            os.remove(self.exe)
+        result = self.toolbox.process.run('compile', source=self.source,
+                                          exe=self.exe, language=True)
         return result == 0
+
+    def test(self, *suite):
+        if not os.path.exists(self.exe):
+            raise Exception('source must be compiled first')
+        testcases = self.get_testcases()
+        for test in suite:
+            if test not in testcases:
+                raise Exception(f'test case not found: { test }')
+        if not testcases:
+            self.toolbox.console.print('There are no test cases to run')
+            return True
+        info = ('all tests' if not suite else
+                'test%s' % ('s' if len(suite) > 1 else ''))
+        self.toolbox.console.print(
+                'Running', info, 'with a time limit of %d ms'
+                % self.problem.time_limit)
+        timeout = self.problem.time_limit / 1000
+        timefile = self.get_filename('.time')
+        success = True
+        for test in suite if suite else sorted(testcases.keys()):
+            kwargs = {'exe': self.exe,
+                      'time': timefile,
+                      'input': self.get_filename(f'{ test }.in'),
+                      'output': self.get_filename(f'{ test }.out'),
+                      'answer': self.get_filename(f'{ test }.ans'),
+                      'error': self.get_filename(f'{ test }.err')}
+            kwargs['run'] = self.toolbox.get_language('run').format(**kwargs)
+            self.toolbox.console.alternate('Test ', test, '...', sep='', end='')
+            code = self.toolbox.process.run(
+                    'time', echo=False, timeout=timeout, **kwargs)
+            if os.path.isfile(timefile):
+                with open(timefile) as stream:
+                    time = stream.readline()[:-1]
+                self.toolbox.console.print('  ', time, end='')
+                os.remove(timefile)
+            if code == -1:
+                success = False
+                self.toolbox.console.print('  Timeout', bold=True, end='')
+            elif code != 0:
+                success = False
+                self.toolbox.console.print('  Error', bold=True, end='')
+            else:
+                if not testcases[test]:
+                    self.toolbox.console.alternate('  ', 'Okay', end='')
+                else:
+                    result = self.toolbox.process.run(
+                            'diff', echo=False, **kwargs)
+                    success = success and result == 0
+                    self.toolbox.console.alternate(
+                            '  ', 'Wrong answer' if result else 'Accepted',
+                            end='')
+                if os.path.getsize(kwargs['error']):
+                    success = False
+                    self.toolbox.console.print('  (stderr output)', end='')
+            self.toolbox.console.print()
+        return success

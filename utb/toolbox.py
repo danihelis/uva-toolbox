@@ -320,9 +320,9 @@ class Toolbox:
         default text editor with the required file. There must be
         a problem currently being solved (see `add` and `select`). To
         edit the source code for the current problem, type the command
-        without arguments. To edit a test case, type its letter as
+        without arguments. To edit a test case, type its name as
         argument. To add a new test case, type `+`. A letter will be
-        assigned to the test case, starting from "a".
+        used to identify the test case, starting from "a".
         """
         self.workbench.edit(*args)
 
@@ -356,3 +356,15 @@ class Toolbox:
         same used by UVa Online Judge.
         """
         self.workbench.compile()
+
+    def command_test(self, *args):
+        """
+        Run the solution against a set of tests. The source code must be
+        compiled first (see `compile`). All files with ".in" extension
+        are considered input test cases. A test case may have an answer
+        file indicated by ".ans" extension. To run all test cases, type
+        this command without arguments. To run a subset of tests, type
+        their names separated by space. To add or edit a test case, use
+        the command `edit`.
+        """
+        self.workbench.test(*args)
