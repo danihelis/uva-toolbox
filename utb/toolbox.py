@@ -324,7 +324,11 @@ class Toolbox:
         argument. To add a new test case, type `+`. A letter will be
         used to identify the test case, starting from "a".
         """
-        self.workbench.edit(*args)
+        if not args:
+            self.workbench.edit()
+        else:
+            test = args[0] if args[0] != '+' else None
+            self.workbench.edit_test(test)
 
     def command_select(self, *args):
         """
@@ -359,12 +363,20 @@ class Toolbox:
 
     def command_test(self, *args):
         """
-        Run the solution against a set of tests. The source code must be
-        compiled first (see `compile`). All files with ".in" extension
-        are considered input test cases. A test case may have an answer
-        file indicated by ".ans" extension. To run all test cases, type
-        this command without arguments. To run a subset of tests, type
-        their names separated by space. To add or edit a test case, use
-        the command `edit`.
+        Run the solution against a set of tests. All files with ".in"
+        extension are considered input test cases. A test case may have
+        an answer file indicated by ".ans" extension. To run all test
+        cases, type this command without arguments. To run a subset of
+        tests, type their names separated by space. To add or edit
+        a test case, use the command `edit`. If the source code was
+        modified, it will be compiled before the tests (see `compile`).
         """
         self.workbench.test(*args)
+
+    def command_files(self, *args):
+        """
+        List all files used in the current problem. The file name and
+        the date when it was last modified is listed. The source code
+        and the test case files are highlighted.
+        """
+        self.workbench.files()

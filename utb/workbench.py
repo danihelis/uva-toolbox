@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import os
 import shutil
 
@@ -108,6 +109,17 @@ class Workbench:
                 stream.write(trim(template.format(**kwargs)))
         self.toolbox.process.open('editor', filename)
 
+    def edit_test(self, test=None):
+        assert self.problem, 'there is no problem selected'
+        if not test:
+            testcases = self.get_testcases()
+            test = 'a'
+            while test in testcases:
+                test = chr(ord(test) + 1)
+        input = self.get_filename(f'{ test }.in')
+        answer = self.get_filename(f'{ test }.ans')
+        self.toolbox.process.open('editor', '"%s" "%s"' % (input, answer))
+
     def remove(self, problem, force=False):
         assert problem in self.works, 'problem is not being solved'
         if not force:
@@ -136,8 +148,12 @@ class Workbench:
         return result == 0
 
     def test(self, *suite):
-        if not os.path.exists(self.exe):
-            raise Exception('source must be compiled first')
+        assert os.path.isfile(self.source), f'source not found: { self.source }'
+        source_date = os.path.getctime(self.source)
+        exe_date = os.path.getctime(self.exe) if os.path.isfile(self.exe) else 0
+        if exe_date < source_date:
+            if not self.compile():
+                return
         testcases = self.get_testcases()
         for test in suite:
             if test not in testcases:
@@ -145,11 +161,8 @@ class Workbench:
         if not testcases:
             self.toolbox.console.print('There are no test cases to run')
             return True
-        info = ('all tests' if not suite else
-                'test%s' % ('s' if len(suite) > 1 else ''))
-        self.toolbox.console.print(
-                'Running', info, 'with a time limit of %d ms'
-                % self.problem.time_limit)
+        self.toolbox.console.print('Running tests with a time limit of %d ms'
+                                   % self.problem.time_limit)
         timeout = self.problem.time_limit / 1000
         timefile = self.get_filename('.time')
         success = True
@@ -167,7 +180,8 @@ class Workbench:
             if os.path.isfile(timefile):
                 with open(timefile) as stream:
                     time = stream.readline()[:-1]
-                self.toolbox.console.print('  ', time, end='')
+                if time.startswith('0'):
+                    self.toolbox.console.print('  ', time, end='')
                 os.remove(timefile)
             if code == -1:
                 success = False
@@ -190,3 +204,17 @@ class Workbench:
                     self.toolbox.console.print('  (stderr output)', end='')
             self.toolbox.console.print()
         return success
+
+    def files(self):
+        assert self.problem, 'there is no problem selected'
+        files = []
+        source = self.source
+        for file in sorted(os.listdir(self.dir())):
+            if not file.startswith('.'):
+                path = self.get_filename(file)
+                bold = (path == source or file.endswith('.in')
+                        or file.endswith('.ans'))
+                date = datetime.datetime.fromtimestamp(os.path.getctime(path))
+                self.toolbox.console.print(date.strftime('%b %d %Y %H:%M:%S'),
+                                           end='  ')
+                self.toolbox.console.print(file, bold=bold)
