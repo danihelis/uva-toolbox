@@ -391,3 +391,13 @@ class Toolbox:
         checked with the commands `queue` and `check`.
         """
         self.uva.submit()
+
+    def command_check(self, *args):
+        """
+        Check your last submissions. It displays your last ten
+        submissions sent to the online judge. To list more than ten
+        entries up to 100, type a number as argument. To see the
+        submissions from any user, use the command `queue` instead.
+        """
+        entries = int(args[0]) if args else 10
+        self.history.last_submissions(entries)

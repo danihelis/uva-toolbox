@@ -35,15 +35,28 @@ class Submission:
         80: ('PE', 'Presentation error'),
         90: ('AC', 'Accepted'),
     }
+    LANGUAGE_CODES = {
+        1: 'C',
+        2: 'Java',
+        3: 'C99',
+        4: 'Pascal',
+        5: 'C++',
+        6: 'Python',
+    }
 
     def __init__(self, problem_id, timestamp, verdict_id, runtime=None,
-                 rank=None):
+                 rank=None, language_code=None):
         self.problem_id = problem_id
         self.timestamp = timestamp
         self.verdict_id = verdict_id
         self.timestamp = timestamp
         self.runtime = runtime
         self.rank = rank
+        self.language_code = language_code
+
+    @property
+    def language(self):
+        return self.LANGUAGE_CODES.get(self.language_code, '?')
 
     @property
     def verdict(self):
@@ -112,7 +125,7 @@ class UserHistory:
 
     @property
     def count(self):
-        return len(self.data.get('subs', []))
+        return len(self.submissions)
 
     def reset(self):
         self.data = {}
@@ -122,11 +135,14 @@ class UserHistory:
     def populate(self, data):
         self.reset()
         self.data = data
+        self.submissions = []
         for entry in data.get('subs', []):
             pid = entry[1]
             submission = Submission(entry[1], entry[4], entry[2], entry[3],
-                                    entry[6])
+                                    entry[6], entry[5])
+            self.submissions.append(submission)
             self.toolbox.problemset.problems[pid].history.add(submission)
+        self.submissions.sort(key=lambda s: s.timestamp, reverse=True)
 
     def update(self):
         self.populate(self.toolbox.uhunt.get_submissions())
@@ -134,3 +150,27 @@ class UserHistory:
 
     def save(self):
         self.toolbox.write_json(self.filename, self.data)
+
+    def last_submissions(self, entries=10):
+        self.update()
+        self.toolbox.console.print('%4s' % 'Time',
+                                   '%-30s' % 'Problem',
+                                   '%7s' % 'Run',
+                                   '%7s' % 'Best',
+                                   '%4s' % 'Lang',
+                                   'Verdict',
+                                   bold=True, sep='  ')
+        for sub in self.submissions[:entries]:
+            problem = self.toolbox.problemset.problems[sub.problem_id]
+            title = '%5s %s' % (problem.number, problem.name)
+            if len(title) > 30:
+                title = title[:29] + '…'
+            verd = sub.verdict[1]
+            self.toolbox.console.print(
+                    '%4s' % sub.time_ago,
+                    '%-30s' % title,
+                    '%6.3fs' % (sub.runtime / 1000),
+                    '%6.3fs' % (problem.best_time / 1000),
+                    '%-4s' % sub.language[:4],
+                    verd,
+                    sep='  ', bold=False)

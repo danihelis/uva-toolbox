@@ -25,7 +25,7 @@ DEFAULT_SETTINGS = {
     'solution-dir': 'solution',
     'copy-solution': True,
     'erase-after-accepted': True,
-    'language': 'c', # {'c', 'cpp', 'python', 'java', 'pascal'}
+    'language': 'c', # {'c', 'c99', 'cpp', 'python', 'java', 'pascal'}
 
     # Hacks
     'force-cpp-on-ansi-c': False,

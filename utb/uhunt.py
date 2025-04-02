@@ -47,25 +47,31 @@ class UHunt:
         self.toolbox.console.print('%4s' % 'Time',
                                    '%-30s' % 'Problem',
                                    '%7s' % 'Run',
-                                   '%-18s' % 'Verdict',
+                                   '%-12s' % 'Verdict',
+                                   '%4s' % 'Lang',
                                    'User',
                                    bold=True, sep='  ')
         for entry in data[:entries]:
             obj = entry['msg']
             problem = self.toolbox.problemset.problems[obj['pid']]
             user = obj['name']
+            sub = Submission(problem.id, obj['sbt'], obj['ver'],
+                             runtime=obj['run'], rank=obj['rank'],
+                             language_code=obj['lan'])
             if len(user) > 13:
                 user = user[:12] + '…'
             title = '%5s %s' % (problem.number, problem.name)
             if len(title) > 30:
                 title = title[:29] + '…'
-            sub = Submission(problem.id, obj['sbt'], obj['ver'],
-                             runtime=obj['run'], rank=obj['rank'])
+            verd = sub.verdict[1]
+            if len(verd) > 12:
+                verd = verd[:11] + '…'
             self.toolbox.console.print(
                     '%4s' % sub.time_ago,
                     '%-30s' % title,
                     '%6.3fs' % (sub.runtime / 1000),
-                    '%-18s' % sub.verdict[1][:18],
+                    '%-12s' % verd,
+                    '%-4s' % sub.language[:4],
                     user,
                     sep='  ', bold=False)
 

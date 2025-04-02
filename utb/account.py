@@ -55,5 +55,8 @@ class Account:
     def set_password(self):
         assert self.user, 'user not defined'
         self.toolbox.console.alternate('Username:', self.user)
-        self.password = getpass.getpass()
+        try:
+            self.password = getpass.getpass()
+        except (EOFError, KeyboardInterrupt):
+            self.toolbox.console.print('Operation aborted')
         self.save()
