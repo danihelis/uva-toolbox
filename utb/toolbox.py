@@ -43,9 +43,9 @@ from .workbench import Workbench
 # !  ed it = edit test case
 # !  co mpile = ...
 # !  t est = ...
-# su bmit = ...
+# !  su bmit = ...
 # !  q ueue = see submission queue
-# ch eck = list of last submissions
+# !  ch eck = list of last submissions
 # ac cept = mark as accepted, removing from workbench
 # => ar chive = ''
 # !  re move = remove problem from workbench
@@ -396,8 +396,44 @@ class Toolbox:
         """
         Check your last submissions. It displays your last ten
         submissions sent to the online judge. To list more than ten
-        entries up to 100, type a number as argument. To see the
-        submissions from any user, use the command `queue` instead.
+        entries, type a number as argument. To see the submissions from
+        any user, use the command `queue` instead.
         """
         entries = int(args[0]) if args else 10
         self.history.last_submissions(entries)
+
+    def command_debug(self, *args):
+        """
+        Open uDebug webpage for current problem. The site contains
+        public test cases created by the community. Use the command
+        `edit` to add tests copied from the site.
+        """
+        problem = self.problemset.get_problem(*args)
+        url = self.get('udebug').format(problem.number)
+        self.process.open('browser', url)
+
+    def command_uhunt(self, *args):
+        """
+        Open uHunt webpage. The site contains all information used by
+        this toolbox. You can find updated data about the online judge
+        and many statistics about your account.
+        """
+        url = self.get('uhunt').format(self.account.id or '')
+        self.process.open('browser', url)
+
+    def command_rank(self, *args):
+        """
+        Display current ranklist. The list shows ten users ranked above
+        and below the current account user. To list a different number
+        of users ranked above up to 100, type the number as argument. To
+        see the ranklist for a different user, type the username as
+        argument. To set the current account user, type `user`.
+        """
+        kwargs = {'username': None, 'entries': 10}
+        for arg in args:
+            try:
+                entries = int(arg)
+                kwargs['entries'] = max(10, min(100, entries))
+            except ValueError:
+                kwargs['username'] = arg
+        self.uhunt.ranklist(**kwargs)

@@ -31,15 +31,17 @@ DEFAULT_SETTINGS = {
     'force-cpp-on-ansi-c': False,
 
     # External parameters
-    'number-books': 4,
+    'uhunt': 'https://uhunt.onlinejudge.org/id/{}',
+    'udebug': 'https://www.udebug.com/UVa/{}',
     'uva-problem': 'http://uva.onlinejudge.org/external/{}/p{}.pdf',
     'uva-submit': 'https://uva.onlinejudge.org/index.php',
     'uhunt-api': 'https://uhunt.onlinejudge.org/api/',
-    'uhunt-page': 'https://uhunt.onlinejudge.org/id/{}',
-    'udebug': 'https://www.udebug.com/UVa/{}',
+    'number-books': 4,
 
     # Executables
     'pdfviewer': 'evince {}',
+    'browser': 'firefox {}',
+    'terminal': 'gnome-terminal --working-directory={dir}',
     'editor': 'gnome-text-editor {}',
     'diff': 'diff -q {output} {answer} > /dev/null',
     'time': '/usr/bin/time -f "%E" -o {time} {run}',

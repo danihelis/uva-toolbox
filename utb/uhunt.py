@@ -54,7 +54,7 @@ class UHunt:
         for entry in data[:entries]:
             obj = entry['msg']
             problem = self.toolbox.problemset.problems[obj['pid']]
-            user = obj['name']
+            user = obj['uname']
             sub = Submission(problem.id, obj['sbt'], obj['ver'],
                              runtime=obj['run'], rank=obj['rank'],
                              language_code=obj['lan'])
@@ -73,7 +73,7 @@ class UHunt:
                     '%-12s' % verd,
                     '%-4s' % sub.language[:4],
                     user,
-                    sep='  ', bold=False)
+                    sep='  ', bold=obj['uid'] == self.toolbox.account.id)
 
     def get_user(self, username):
         userid = self.get('uname2uid', username)
@@ -85,3 +85,33 @@ class UHunt:
         userid = userid or self.toolbox.account.id
         assert userid, 'user account not defined'
         return self.get('subs-user', userid)
+
+    def ranklist(self, username=None, entries=10):
+        if username:
+            userid = self.get('uname2uid', username)
+            assert userid, 'username not found: %s' % username
+        else:
+            userid = self.toolbox.account.id
+            assert userid, 'account user not defined'
+        data = self.get('ranklist', userid, entries, 10)
+        activities = ' '.join('%3s' % f
+                              for f in ('2d', '7d', '1m', '3m', '1y'))
+        self.toolbox.console.print('%6s' % 'Rank',
+                                   '%4s' % 'AC',
+                                   '%6s' % 'Subs',
+                                   activities,
+                                   'User',
+                                   sep='  ', bold=True)
+        for entry in data:
+            name = '%s (%s)' % (entry['username'], entry['name'])
+            if len(name) > 37:
+                name = name[:36] + '…'
+            activities = ' '.join('%3d' % min(999, value)
+                                  for value in entry['activity'])
+            self.toolbox.console.print(
+                    '%6s' % entry['rank'],
+                    '%4s' % entry['ac'],
+                    '%6s' % entry['nos'],
+                    activities,
+                    name,
+                    sep='  ', bold=entry['userid'] == userid)
