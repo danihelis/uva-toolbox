@@ -1,10 +1,5 @@
-[tool.yapfignore]
-ignore_patterns = ["*/migrations/*.py"]
-
 [tool.yapf]
 based_on_style = "google"
 
 [tool.isort]
-extend_skip_glob = ["*/migrations/*.py"]
-src_paths = ["apps", "camplearning", "libs"]
-multi_line_output = 3
+src_paths = ["utb"]
