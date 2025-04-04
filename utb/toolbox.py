@@ -33,39 +33,6 @@ from .utils import trim
 from .uva import UVa
 from .workbench import Workbench
 
-# Commands:
-#
-# !  n ext = choose next problem to solve
-# !  d ownload = download statement
-# !  o pen = download PDF and open it
-# !  se lect = list open problems or select one
-# !  ad d = put problem into workbench
-# !  ed it = edit test case
-# !  co mpile = ...
-# !  t est = ...
-# !  su bmit = ...
-# !  q ueue = see submission queue
-# !  ch eck = list of last submissions
-# ac cept = mark as accepted, removing from workbench
-# => ar chive = ''
-# !  re move = remove problem from workbench
-#
-# !  us er = modify account data
-# p assword = define user password
-# !  up date = ...
-#
-# uh unt = open uHunt web
-# ud ebug = open uDebug web
-# sh ell = open shell terminal
-#
-# !  b ook = list of uHunt books
-# !  l ist = show problems
-# !  i nfo = info for problem
-# !  v olume = show volumes
-# ra nk = rank on UVA
-#
-# !  ex it = ...
-
 
 class Toolbox:
 
@@ -210,7 +177,7 @@ class Toolbox:
         Choose the next problem to solve. The next problem is selected
         from the easiest problems listed in the current book. To choose
         a problem from a specific list, type its index as argument. To
-        choose a problem from the entire problemset, type `-` as
+        choose a problem from the entire problem set, type `-` as
         argument.
         """
         choices, level, pop = None, None, None
@@ -385,7 +352,7 @@ class Toolbox:
 
     def command_submit(self, *args):
         """
-        Submit the solution to online judge. In order to connect to the
+        Submit a solution to online judge. In order to connect to the
         online judge server, a valid account with password is required
         (see `password`). All submissions and evaluation scores can be
         checked with the commands `queue` and `check`.
@@ -423,10 +390,10 @@ class Toolbox:
 
     def command_rank(self, *args):
         """
-        Display current ranklist. The list shows ten users ranked above
+        Display current rank list. The list shows ten users ranked above
         and below the current account user. To list a different number
         of users ranked above up to 100, type the number as argument. To
-        see the ranklist for a different user, type the username as
+        see the rank list for a different user, type the username as
         argument. To set the current account user, type `user`.
         """
         kwargs = {'username': None, 'entries': 10}
@@ -437,3 +404,23 @@ class Toolbox:
             except ValueError:
                 kwargs['username'] = arg
         self.uhunt.ranklist(**kwargs)
+
+    def command_shell(self, *args):
+        """
+        Open terminal window. The current directory is set to where the
+        current problem's files are.
+        """
+        problem = self.problemset.get_problem(*args)
+        dir = os.path.abspath(self.workbench.dir(problem))
+        self.process.open('terminal', dir=dir)
+
+    def command_archive(self, *args):
+        """
+        Save the solution and remove the problem. This operation only
+        works for problems that have been accepted by the online judge
+        (use `check` to validate it). The source code is moved to the
+        solution directory. All other files related to the problem are
+        permanently removed (see `remove`).
+        """
+        problem = self.problemset.get_problem(*args)
+        self.workbench.archive(problem)

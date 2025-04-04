@@ -23,9 +23,8 @@ DEFAULT_SETTINGS = {
     'pdf-dir': '.pdf',
     'problem-dir': 'problem',
     'solution-dir': 'solution',
-    'copy-solution': True,
-    'erase-after-accepted': True,
     'language': 'c', # {'c', 'c99', 'cpp', 'python', 'java', 'pascal'}
+    'use-volume-in-solution-dir': True,
 
     # Hacks
     'force-cpp-on-ansi-c': False,

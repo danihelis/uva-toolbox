@@ -64,8 +64,8 @@ class Workbench:
             for problem in self.works:
                 problem.print(short=True, star=problem == self.problem)
         else:
-            assert problem in self.works, ('problem is not being solved: '
-                                           'add the problem first')
+            assert problem in self.works, (
+                    'problem is not being solved: add the problem first')
             if problem != self.problem:
                 self.toolbox.write_json(self._filename, problem.number)
             self.problem = problem
@@ -244,3 +244,18 @@ class Workbench:
                 self.toolbox.console.print(date.strftime('%b %d %Y %H:%M:%S'),
                                            end='  ')
                 self.toolbox.console.print(file, bold=bold)
+
+    def archive(self, problem, force=False):
+        assert problem in self.works, 'problem is not being solved'
+        assert force or problem.history.accepted, (
+                'problem has not been accepted yet')
+        assert os.path.isfile(self.source_path), (
+                'source file not found: ' + self.source_path)
+        dir = self.toolbox.get('solution-dir')
+        if self.toolbox.get('use-volume-in-solution-dir'):
+            dir = os.path.join(dir, str(problem.volume))
+        solution = os.path.join(dir, self.source)
+        self.toolbox.makedir(solution)
+        shutil.move(self.source_path, solution)
+        self.toolbox.console.alternate('Solution saved at', solution)
+        self.remove(problem, force=True)
