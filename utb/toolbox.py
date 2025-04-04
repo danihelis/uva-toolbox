@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from collections import OrderedDict
 import inspect
 import json
 import os
 import random
+from collections import OrderedDict
+
 import yaml
 
 from .account import Account
@@ -64,13 +65,13 @@ class Toolbox:
         return self.workbench.problem
 
     def get(self, key, default=None):
-        return (self.config.get(key) if key in self.config else
-                DEFAULT_SETTINGS.get(key, default))
+        return (self.config.get(key)
+                if key in self.config else DEFAULT_SETTINGS.get(key, default))
 
     def get_language(self, key, default=None):
         key = '%s-%s' % (self.get('language'), key)
-        return (self.config.get(key) if key in self.config else
-                DEFAULT_SETTINGS.get(key, default))
+        return (self.config.get(key)
+                if key in self.config else DEFAULT_SETTINGS.get(key, default))
 
     def makedir(self, filename):
         path, _ = os.path.split(filename)
@@ -98,8 +99,11 @@ class Toolbox:
     def load_commands(self):
         members = inspect.getmembers(self, lambda obj: inspect.ismethod(obj))
         prefix = 'command_'
-        self.commands = {name[len(prefix):]: method for name, method in members
-                         if name.startswith('command_')}
+        self.commands = {
+            name[len(prefix):]: method
+            for name, method in members
+            if name.startswith('command_')
+        }
 
     def get_unique_command(self, prefix):
         commands = [k for k in self.commands if k.startswith(prefix)]
@@ -132,7 +136,8 @@ class Toolbox:
             self.console.print('List of available commands')
             for name in sorted(self.commands.keys()):
                 doc = self.commands[name].__doc__.split('.')[0]
-                self.console.alternate('%-10s' % name, doc.strip().lower(),
+                self.console.alternate('%-10s' % name,
+                                       doc.strip().lower(),
                                        start_bold=True)
 
     def command_list(self, *args):
@@ -184,8 +189,10 @@ class Toolbox:
         problems = (self.problemset.list.values() if args and args[0] == '-'
                     else self.current_book.get_section(*args).problems)
         for p in problems:
-            if not p.history.accepted and (level is None or (p.level < level or
-                     (p.level == level and p.popularity <= pop))):
+            if not p.history.accepted and (
+                    level is None or
+                (p.level < level or
+                 (p.level == level and p.popularity <= pop))):
                 if level is None or p.level < level or p.popularity < pop:
                     choices = []
                     level = p.level
@@ -241,14 +248,12 @@ class Toolbox:
         if args:
             self.account.set(args[0])
         if self.account.user:
-            self.console.alternate('User', self.account.user,
-                                   ' ID', self.account.id,
-                                   ' Name', self.account.name,
+            self.console.alternate('User', self.account.user, ' ID',
+                                   self.account.id, ' Name', self.account.name,
                                    ' Submissions', self.history.count)
         else:
             self.console.alternate('Account not defined. Type',
-                                   'user `username`',
-                                   'to set current user.')
+                                   'user `username`', 'to set current user.')
 
     def command_update(self, *args):
         """
@@ -307,7 +312,8 @@ class Toolbox:
         arguments. To select a specific problem, type its number as
         argument. To select the previous problem, type `-`.
         """
-        problem = self.problemset.get_problem(*args, accept_none=True,
+        problem = self.problemset.get_problem(*args,
+                                              accept_none=True,
                                               ignore_current=True)
         self.workbench.select(problem)
 

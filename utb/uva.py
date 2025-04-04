@@ -14,17 +14,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import mechanize
 import os
+
+import mechanize
+
 
 class UVa:
     url = 'https://uva.onlinejudge.org/index.php?option=com_onlinejudge&Itemid=25'
-    code = {'c': '1',
-            'java': '2',
-            'c99': '3',
-            'pascal': '4',
-            'cpp': '5',
-            'python': '6'}
+    code = {
+        'c': '1',
+        'java': '2',
+        'c99': '3',
+        'pascal': '4',
+        'cpp': '5',
+        'python': '6'
+    }
 
     def __init__(self, toolbox):
         self.toolbox = toolbox
@@ -42,9 +46,11 @@ class UVa:
             self.toolbox.account.set_password()
             assert self.toolbox.account.password, 'password not defined'
 
-        self.toolbox.console.alternate(
-                'Logging in', 'uva.onlinejudge.org', 'as user',
-                self.toolbox.account.user, end='...\n')
+        self.toolbox.console.alternate('Logging in',
+                                       'uva.onlinejudge.org',
+                                       'as user',
+                                       self.toolbox.account.user,
+                                       end='...\n')
         self.browser = mechanize.Browser()
         self.browser.set_handle_robots(False)
         self.browser.open(self.url)
@@ -73,9 +79,9 @@ class UVa:
         if self.browser is None:
             self.login()
 
-        self.toolbox.console.alternate(
-                'Submitting solution', self.toolbox.workbench.source,
-                end='...\n')
+        self.toolbox.console.alternate('Submitting solution',
+                                       self.toolbox.workbench.source,
+                                       end='...\n')
         self.browser.open(self.url)
         try:
             self.browser.select_form(action=lambda x: 'submission' in x)

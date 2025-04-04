@@ -18,6 +18,7 @@ import getpass
 import json
 import os
 
+
 class Account:
     FIELDS = ['id', 'user', 'password', 'name']
 
@@ -49,8 +50,10 @@ class Account:
                 self.toolbox.history.reset()
 
     def as_kwargs(self):
-        return {f'account_{ field }': getattr(self, field, None)
-                for field in self.FIELDS}
+        return {
+            f'account_{ field }': getattr(self, field, None)
+            for field in self.FIELDS
+        }
 
     def set_password(self):
         assert self.user, 'user not defined'

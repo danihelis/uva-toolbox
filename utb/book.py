@@ -14,10 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import json
+import os
 
 from .utils import to_roman
+
 
 class Chapter:
 
@@ -51,7 +52,10 @@ class Chapter:
         parent_index = self.parent.get_full_index()
         return ('%s.' % parent_index if parent_index else '') + str(self.index)
 
-    def print_name(self, with_parent=False, with_index=True, width=80,
+    def print_name(self,
+                   with_parent=False,
+                   with_index=True,
+                   width=80,
                    bold=False):
         index = self.get_full_index()
         used = 0
@@ -59,7 +63,7 @@ class Chapter:
         if with_index:
             available -= len(index) + 1
         if with_parent and self.parent:
-            available -= 3 # separator
+            available -= 3  # separator
             used = self.parent.print_name(True, False, available, bold)
             self.toolbox.console.write(' > ')
             used += 3
@@ -79,7 +83,8 @@ class Chapter:
         self.toolbox.console.write('  ' * indent)
         span = 60 - 2 * indent
         span -= self.print_name(with_parent=indent == 0,
-                                bold=indent == 0, width=span)
+                                bold=indent == 0,
+                                width=span)
         if span:
             line = ('·' if depth == 1 else ' ') * (span - 1)
             self.toolbox.console.write(' ' + line)
@@ -148,7 +153,10 @@ class Book(Chapter):
     def book(self):
         return self.book_index
 
-    def print_name(self, with_parent=False, with_index=True, width=80,
+    def print_name(self,
+                   with_parent=False,
+                   with_index=True,
+                   width=80,
                    bold=False):
         self.toolbox.console.write(self.name, bold=bold)
         return len(self.name)

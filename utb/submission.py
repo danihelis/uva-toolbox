@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from collections import namedtuple
 import json
 import math
 import os
 import time
+from collections import namedtuple
+
 
 class Submission:
     VERDICT_CODES = {
@@ -44,8 +45,13 @@ class Submission:
         6: 'Python',
     }
 
-    def __init__(self, problem_id, timestamp, verdict_id, runtime=None,
-                 rank=None, language_code=None):
+    def __init__(self,
+                 problem_id,
+                 timestamp,
+                 verdict_id,
+                 runtime=None,
+                 rank=None,
+                 language_code=None):
         self.problem_id = problem_id
         self.timestamp = timestamp
         self.verdict_id = verdict_id
@@ -69,8 +75,8 @@ class Submission:
     @property
     def time_ago(self):
         value = max(0, int(time.time() - self.timestamp))
-        window = [('s', 1), ('m', 60), ('h', 60),
-                  ('d', 24), ('y', 365), (None, -1)]
+        window = [('s', 1), ('m', 60), ('h', 60), ('d', 24), ('y', 365),
+                  (None, -1)]
         for i in range(1, len(window)):
             nextval = value // window[i][1]
             if nextval < 1 or not window[i][0]:
@@ -159,18 +165,19 @@ class UserHistory:
                                    '%7s' % 'Best',
                                    '%4s' % 'Lang',
                                    'Verdict',
-                                   bold=True, sep='  ')
+                                   bold=True,
+                                   sep='  ')
         for sub in self.submissions[:entries]:
             problem = self.toolbox.problemset.problems[sub.problem_id]
             title = '%5s %s' % (problem.number, problem.name)
             if len(title) > 30:
                 title = title[:29] + '…'
             verd = sub.verdict[1]
-            self.toolbox.console.print(
-                    '%4s' % sub.time_ago,
-                    '%-30s' % title,
-                    '%6.3fs' % (sub.runtime / 1000),
-                    '%6.3fs' % (problem.best_time / 1000),
-                    '%-4s' % sub.language[:4],
-                    verd,
-                    sep='  ', bold=False)
+            self.toolbox.console.print('%4s' % sub.time_ago,
+                                       '%-30s' % title,
+                                       '%6.3fs' % (sub.runtime / 1000),
+                                       '%6.3fs' % (problem.best_time / 1000),
+                                       '%-4s' % sub.language[:4],
+                                       verd,
+                                       sep='  ',
+                                       bold=False)

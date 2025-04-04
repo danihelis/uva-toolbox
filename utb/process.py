@@ -18,6 +18,7 @@ import os
 import shlex
 import subprocess
 
+
 class Process:
 
     def __init__(self, toolbox):
@@ -27,21 +28,33 @@ class Process:
         command = self.toolbox.get(command).format(*args, **kwargs)
         params = shlex.split(command)
         self.toolbox.console.alternate('Executing', command)
-        process = subprocess.Popen(params, stdout=subprocess.DEVNULL,
+        process = subprocess.Popen(params,
+                                   stdout=subprocess.DEVNULL,
                                    stderr=subprocess.DEVNULL)
 
-    def run(self, command, *args, dir=None, echo=True, shell=True, timeout=None,
-            language=False, **kwargs):
+    def run(self,
+            command,
+            *args,
+            dir=None,
+            echo=True,
+            shell=True,
+            timeout=None,
+            language=False,
+            **kwargs):
         method = 'get_language' if language else 'get'
         command = getattr(self.toolbox, method)(command).format(*args, **kwargs)
         if echo:
             self.toolbox.console.alternate('Executing', command)
         output = subprocess.PIPE if echo else subprocess.DEVNULL
         try:
-            process = subprocess.run(
-                    command, shell=shell, check=False, stdout=output,
-                    stderr=subprocess.STDOUT, text=True, cwd=dir,
-                    timeout=timeout)
+            process = subprocess.run(command,
+                                     shell=shell,
+                                     check=False,
+                                     stdout=output,
+                                     stderr=subprocess.STDOUT,
+                                     text=True,
+                                     cwd=dir,
+                                     timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
             if echo:

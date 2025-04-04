@@ -16,40 +16,66 @@
 
 DEFAULT_SETTINGS = {
     # General parameters
-    'accept-color': True,
-    'black-background': True,
-    'debug': False,
-    'data-dir': '.data',
-    'pdf-dir': '.pdf',
-    'problem-dir': 'problem',
-    'solution-dir': 'solution',
-    'language': 'c', # {'c', 'c99', 'cpp', 'python', 'java', 'pascal'}
-    'use-volume-in-solution-dir': True,
+    'accept-color':
+        True,
+    'black-background':
+        True,
+    'debug':
+        False,
+    'data-dir':
+        '.data',
+    'pdf-dir':
+        '.pdf',
+    'problem-dir':
+        'problem',
+    'solution-dir':
+        'solution',
+    'language':
+        'c',  # {'c', 'c99', 'cpp', 'python', 'java', 'pascal'}
+    'use-volume-in-solution-dir':
+        True,
 
     # Hacks
-    'force-cpp-on-ansi-c': False,
+    'force-cpp-on-ansi-c':
+        False,
 
     # External parameters
-    'uhunt': 'https://uhunt.onlinejudge.org/id/{}',
-    'udebug': 'https://www.udebug.com/UVa/{}',
-    'uva-problem': 'http://uva.onlinejudge.org/external/{}/p{}.pdf',
-    'uva-submit': 'https://uva.onlinejudge.org/index.php',
-    'uhunt-api': 'https://uhunt.onlinejudge.org/api/',
-    'number-books': 4,
+    'uhunt':
+        'https://uhunt.onlinejudge.org/id/{}',
+    'udebug':
+        'https://www.udebug.com/UVa/{}',
+    'uva-problem':
+        'http://uva.onlinejudge.org/external/{}/p{}.pdf',
+    'uva-submit':
+        'https://uva.onlinejudge.org/index.php',
+    'uhunt-api':
+        'https://uhunt.onlinejudge.org/api/',
+    'number-books':
+        4,
 
     # Executables
-    'pdfviewer': 'evince {}',
-    'browser': 'firefox {}',
-    'terminal': 'gnome-terminal --working-directory={dir}',
-    'editor': 'gnome-text-editor {}',
-    'diff': 'diff -q {output} {answer} > /dev/null',
-    'time': '/usr/bin/time -f "%E" -o {time} {run}',
-
-    'c-source': '{problem_number}.c',
-    'c-exe': '{problem_number}',
-    'c-compile': 'gcc -pipe -ansi -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
-    'c-run': './{exe} < {input} > {output} 2> {error}',
-    'c-template': """
+    'pdfviewer':
+        'evince {}',
+    'browser':
+        'firefox {}',
+    'terminal':
+        'gnome-terminal --working-directory={dir}',
+    'editor':
+        'gnome-text-editor {}',
+    'diff':
+        'diff -q {output} {answer} > /dev/null',
+    'time':
+        '/usr/bin/time -f "%E" -o {time} {run}',
+    'c-source':
+        '{problem_number}.c',
+    'c-exe':
+        '{problem_number}',
+    'c-compile':
+        'gcc -pipe -ansi -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
+    'c-run':
+        './{exe} < {input} > {output} 2> {error}',
+    'c-template':
+        """
         /* {problem_number}
          * {problem_name}
          * By {account_name}
@@ -66,12 +92,16 @@ DEFAULT_SETTINGS = {
             return EXIT_SUCCESS;
         }}
         """,
-
-    'cpp-source': '{problem_number}.cpp',
-    'cpp-exe': '{problem_number}',
-    'cpp-compile': 'gcc -pipe -std=c++11 -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
-    'cpp-run': './{exe} < {input} > {output} 2> {error}',
-    'cpp-template': """
+    'cpp-source':
+        '{problem_number}.cpp',
+    'cpp-exe':
+        '{problem_number}',
+    'cpp-compile':
+        'gcc -pipe -std=c++11 -pedantic -Wall -O2 {source} -o {exe} -lm -lcrypt',
+    'cpp-run':
+        './{exe} < {input} > {output} 2> {error}',
+    'cpp-template':
+        """
         /* {problem_number}
          * {problem_name}
          * By {account_name}
@@ -87,12 +117,16 @@ DEFAULT_SETTINGS = {
             return EXIT_SUCCESS;
         }}
         """,
-
-    'java-source': '{problem_number}.java',
-    'java-exe': 'Main.class',
-    'java-compile': 'javac {source} -d {dir} -source 8 -target 8 -Xlint:-options',
-    'java-run': 'java {exe} < {input} > {output} 2> {error}',
-    'java-template': """
+    'java-source':
+        '{problem_number}.java',
+    'java-exe':
+        'Main.class',
+    'java-compile':
+        'javac {source} -d {dir} -source 8 -target 8 -Xlint:-options',
+    'java-run':
+        'java {exe} < {input} > {output} 2> {error}',
+    'java-template':
+        """
         /* {problem_number}
          * {problem_name}
          * @author {account_name}
@@ -109,10 +143,12 @@ DEFAULT_SETTINGS = {
             }}
         }}
         """,
-
-    'python-source': '{problem_number}.py',
-    'python-run': 'python {source} < {input} > {output} 2> {error}',
-    'python-template': """
+    'python-source':
+        '{problem_number}.py',
+    'python-run':
+        'python {source} < {input} > {output} 2> {error}',
+    'python-template':
+        """
         # {problem_number}
         # {problem_name}
         # By {account_name}

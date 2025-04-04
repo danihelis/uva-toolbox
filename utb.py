@@ -17,4 +17,5 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import utb
+
 utb.init('utb.yaml')

@@ -22,6 +22,7 @@ This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 """
 
+
 class Console:
     BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE = list(range(8))
 
@@ -31,18 +32,24 @@ class Console:
 
     def write(self, arg, color=None, bold=False, background=None):
         if (color or bold or background) and self.accept_color:
-            print('\033[%s%s3%dm' % (
-                        '1;' if bold else '',
-                        ('4%d;' % background) if background else '',
-                        color if color is not None else self.WHITE),
-                  arg, '\033[0m', sep='', end='', flush=True)
+            print('\033[%s%s3%dm' %
+                  ('1;' if bold else '',
+                   ('4%d;' % background) if background else '',
+                   color if color is not None else self.WHITE),
+                  arg,
+                  '\033[0m',
+                  sep='',
+                  end='',
+                  flush=True)
         else:
             print(arg, sep='', end='', flush=True)
 
     def print(self, *args, bold=False, inv=False, end='\n', sep=' '):
-        content = (sep.join(map(str, args)) if len(args) > 1 else
-                   args[0] if args else '')
-        self.write(content, bold=bold, color=self.BLACK if inv else None,
+        content = (sep.join(map(str, args))
+                   if len(args) > 1 else args[0] if args else '')
+        self.write(content,
+                   bold=bold,
+                   color=self.BLACK if inv else None,
                    background=self.WHITE if inv else None)
         self.write(end)
 
@@ -65,7 +72,7 @@ class Console:
                 for symbol, f in fractions:
                     if delta >= f / 8:
                         break
-                else: # no break
+                else:  # no break
                     symbol = None
             if symbol:
                 self.write(symbol, bold=bold)
@@ -99,9 +106,8 @@ class Console:
             prompt = ' utb '
             if self.toolbox.workbench.problem:
                 problem = self.toolbox.current_problem
-                status = (' ✓' if problem.history.accepted else
-                          ' ✗' if problem.history.verdict[0] is not None else
-                          '')
+                status = (' ✓' if problem.history.accepted else ' ✗'
+                          if problem.history.verdict[0] is not None else '')
                 prompt = f' { problem.number }{ status } │ { prompt.strip() } '
             if self.accept_color:
                 prompt += '░▒▓'

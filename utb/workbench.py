@@ -51,8 +51,10 @@ class Workbench:
         dir = self.dir(problem)
         if not os.path.isdir(dir):
             os.makedirs(dir)
-            self.toolbox.console.alternate('Adding problem ', problem.number,
-                                           ': %s' % problem.name, sep='')
+            self.toolbox.console.alternate('Adding problem ',
+                                           problem.number,
+                                           ': %s' % problem.name,
+                                           sep='')
         self.works.add(problem)
 
     def select(self, problem=None):
@@ -65,7 +67,7 @@ class Workbench:
                 problem.print(short=True, star=problem == self.problem)
         else:
             assert problem in self.works, (
-                    'problem is not being solved: add the problem first')
+                'problem is not being solved: add the problem first')
             if problem != self.problem:
                 self.toolbox.write_json(self._filename, problem.number)
             self.problem = problem
@@ -142,9 +144,13 @@ class Workbench:
     def remove(self, problem, force=False):
         assert problem in self.works, 'problem is not being solved'
         if not force:
-            self.toolbox.console.alternate('Removing problem ', problem.number,
-                                           ': %s' % problem.name, sep='')
-            self.toolbox.console.alternate('Type', 'remove', 'to confirm:',
+            self.toolbox.console.alternate('Removing problem ',
+                                           problem.number,
+                                           ': %s' % problem.name,
+                                           sep='')
+            self.toolbox.console.alternate('Type',
+                                           'remove',
+                                           'to confirm:',
                                            end=' ')
             try:
                 confirm = input()
@@ -165,9 +171,11 @@ class Workbench:
         self.check_source_file()
         if os.path.isfile(self.exe_path):
             os.remove(self.exe_path)
-        result = self.toolbox.process.run(
-                'compile', source=self.source, exe=self.exe, language=True,
-                dir=self.dir())
+        result = self.toolbox.process.run('compile',
+                                          source=self.source,
+                                          exe=self.exe,
+                                          language=True,
+                                          dir=self.dir())
         return result == 0
 
     def test(self, *suite):
@@ -186,22 +194,26 @@ class Workbench:
         if not testcases:
             self.toolbox.console.print('There are no test cases to run')
             return True
-        self.toolbox.console.print('Running tests with a time limit of %d ms'
-                                   % self.problem.time_limit)
+        self.toolbox.console.print('Running tests with a time limit of %d ms' %
+                                   self.problem.time_limit)
         timeout = self.problem.time_limit / 1000
         success = True
         for test in suite if suite else sorted(testcases.keys()):
-            kwargs = {'exe': self.exe,
-                      'time': '.time',
-                      'input': f'{ test }.in',
-                      'output': f'{ test }.out',
-                      'answer': f'{ test }.ans',
-                      'error': f'{ test }.err'}
+            kwargs = {
+                'exe': self.exe,
+                'time': '.time',
+                'input': f'{ test }.in',
+                'output': f'{ test }.out',
+                'answer': f'{ test }.ans',
+                'error': f'{ test }.err'
+            }
             kwargs['run'] = self.toolbox.get_language('run').format(**kwargs)
             self.toolbox.console.alternate('Test ', test, '...', sep='', end='')
-            code = self.toolbox.process.run(
-                    'time', echo=False, dir=self.dir(), timeout=timeout,
-                    **kwargs)
+            code = self.toolbox.process.run('time',
+                                            echo=False,
+                                            dir=self.dir(),
+                                            timeout=timeout,
+                                            **kwargs)
             timefile = self.get_filename(kwargs['time'])
             if os.path.isfile(timefile):
                 with open(timefile) as stream:
@@ -219,12 +231,13 @@ class Workbench:
                 if not testcases[test]:
                     self.toolbox.console.alternate('  ', 'Okay', end='')
                 else:
-                    result = self.toolbox.process.run(
-                            'diff', echo=False, dir=self.dir(), **kwargs)
+                    result = self.toolbox.process.run('diff',
+                                                      echo=False,
+                                                      dir=self.dir(),
+                                                      **kwargs)
                     success = success and result == 0
                     self.toolbox.console.alternate(
-                            '  ', 'Wrong answer' if result else 'Accepted',
-                            end='')
+                        '  ', 'Wrong answer' if result else 'Accepted', end='')
                 if os.path.getsize(self.get_filename(kwargs['error'])):
                     success = False
                     self.toolbox.console.print('  (stderr output)', end='')
@@ -238,8 +251,8 @@ class Workbench:
         for file in sorted(os.listdir(self.dir())):
             if not file.startswith('.'):
                 path = self.get_filename(file)
-                bold = (file == source or file.endswith('.in')
-                        or file.endswith('.ans'))
+                bold = (file == source or file.endswith('.in') or
+                        file.endswith('.ans'))
                 date = datetime.datetime.fromtimestamp(os.path.getctime(path))
                 self.toolbox.console.print(date.strftime('%b %d %Y %H:%M:%S'),
                                            end='  ')
@@ -248,9 +261,9 @@ class Workbench:
     def archive(self, problem, force=False):
         assert problem in self.works, 'problem is not being solved'
         assert force or problem.history.accepted, (
-                'problem has not been accepted yet')
-        assert os.path.isfile(self.source_path), (
-                'source file not found: ' + self.source_path)
+            'problem has not been accepted yet')
+        assert os.path.isfile(self.source_path), ('source file not found: ' +
+                                                  self.source_path)
         dir = self.toolbox.get('solution-dir')
         if self.toolbox.get('use-volume-in-solution-dir'):
             dir = os.path.join(dir, str(problem.volume))
