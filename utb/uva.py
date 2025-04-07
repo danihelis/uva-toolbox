@@ -37,7 +37,7 @@ class UVa:
     def get_code(self):
         code = self.code[self.toolbox.get('language')]
         if code == '1' and self.toolbox.get('force-cpp-on-ansi-c'):
-            code = code['cpp']
+            code = self.code['cpp']
         return code
 
     def login(self):
