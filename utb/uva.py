@@ -68,8 +68,9 @@ class UVa:
         except mechanize.FormNotFoundError:
             pass  # form does not exist in a successful login
         else:
-            self.account.password = None
-            self.account.save()
+            self.toolbox.account.password = None
+            self.toolbox.account.save()
+            self.browser = None
             raise Exception('cannot login: invalid password')
 
     def submit(self, force=False):

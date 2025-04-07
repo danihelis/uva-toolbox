@@ -176,17 +176,19 @@ class Problem:
 
 class ProblemSet:
 
-    def __init__(self, toolbox):
+    def __init__(self, toolbox, data=None):
         self.toolbox = toolbox
         self.problems = {}  # by internal id
         self.list = {}  # by number from 100 to 11799
         self.volumes = {}
         self.last_problem = None
-        filename = os.path.join(toolbox.get('data-dir'), 'problemset.json')
-        if not os.path.isfile(filename):
-            return
-        with open(filename) as stream:
-            data = json.load(stream)
+        if data is None:
+            filename = os.path.join(toolbox.get('data-dir'), 'problemset.json')
+            if not os.path.isfile(filename):
+                return
+            with open(filename) as stream:
+                data = json.load(stream)
+        self.data = data
         for obj in data:
             problem = Problem(self.toolbox, obj)
             self.problems[problem.id] = problem
@@ -227,6 +229,13 @@ class ProblemSet:
                 bucket += 1
         for p in self.problems.values():
             p.level = level[p.delta]
+
+    def save(self):
+        filename = os.path.join(self.toolbox.get('data-dir'), 'problemset.json')
+        self.toolbox.write_json(filename, self.data)
+
+    def __bool__(self):
+        return bool(self.problems)
 
     def get_problem(self, *args, accept_none=False, ignore_current=False):
         if not args:

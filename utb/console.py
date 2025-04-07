@@ -99,7 +99,11 @@ class Console:
     def run(self):
         self.quit = False
         self.print(COPYRIGHT)
-        bold = False
+
+        if not self.toolbox.problemset:
+            self.toolbox.command_update()
+            self.print()
+
         self.alternate('Type', 'h', 'or', 'help',
                        'for a list of available commands')
         while not self.quit:

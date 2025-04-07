@@ -28,6 +28,9 @@ class Account:
         data = toolbox.read_json(self.filename, default={})
         self.update(data)
 
+    def __bool__(self):
+        return bool(self.id)
+
     def update(self, data):
         for field in self.FIELDS:
             setattr(self, field, data.get(field, None))

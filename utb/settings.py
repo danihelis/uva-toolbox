@@ -50,8 +50,6 @@ DEFAULT_SETTINGS = {
         'https://uva.onlinejudge.org/index.php',
     'uhunt-api':
         'https://uhunt.onlinejudge.org/api/',
-    'number-books':
-        4,
 
     # Executables
     'pdfviewer':

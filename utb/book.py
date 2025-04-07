@@ -17,6 +17,7 @@
 import json
 import os
 
+from .book_data import book_data
 from .utils import to_roman
 
 
@@ -128,22 +129,11 @@ class Book(Chapter):
             self.content.append(Chapter(toolbox, obj, self, index + 1))
 
     @classmethod
-    def load(cls, toolbox, index):
-        filename = os.path.join(toolbox.get('data-dir'),
-                                'book-%d.json' % (index))
-        if os.path.isfile(filename):
-            with open(filename) as stream:
-                data = json.loads(stream.read())
-                return cls(toolbox, data, index)
-        return None
-
-    @classmethod
-    def load_all(cls, toolbox):
+    def load(cls, toolbox):
         books = []
-        for index in range(toolbox.get('number-books', 4)):
-            book = cls.load(toolbox, index + 1)
-            if book:
-                books.append(book)
+        for index, data in enumerate(book_data):
+            book = cls(toolbox, json.loads(data), index + 1)
+            books.append(book)
         return books
 
     def __str__(self):

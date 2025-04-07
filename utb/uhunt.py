@@ -21,13 +21,6 @@ from .submission import Submission
 
 
 class UHunt:
-    # problem     = p/num/{pid}
-    # problem-set = p
-    # submissions = subs-user/{uid}
-    # last        = subs-user-last/{uid}/{count}
-    # rank        = ranklist/{uid}/{above}/{below}
-    # name2id     = uname2uid/{name}
-    # halim       = cpbook/{edition}
 
     def __init__(self, toolbox):
         self.toolbox = toolbox
@@ -39,6 +32,7 @@ class UHunt:
             response = request.urlopen(url)
             return json.loads(response.read().decode('utf-8'))
         except:
+            raise
             raise Exception('cannot access URL', url)
 
     def queue(self, entries=10):
@@ -121,3 +115,9 @@ class UHunt:
                                        name,
                                        sep='  ',
                                        bold=entry['userid'] == userid)
+
+    def get_book(self, index):
+        return self.get('cpbook', index)
+
+    def get_problemset(self):
+        return self.get('p')

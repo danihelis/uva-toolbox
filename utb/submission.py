@@ -151,7 +151,8 @@ class UserHistory:
         self.submissions.sort(key=lambda s: s.timestamp, reverse=True)
 
     def update(self):
-        self.populate(self.toolbox.uhunt.get_submissions())
+        if self.toolbox.account:
+            self.populate(self.toolbox.uhunt.get_submissions())
         self.save()
 
     def save(self):

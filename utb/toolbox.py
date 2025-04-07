@@ -47,10 +47,11 @@ class Toolbox:
             self.config = {}
         else:
             with open(config) as stream:
-                self.config = yaml.safe_load(stream)
+                self.config = yaml.safe_load(stream) or {}
+
         self.console = Console(self)
         self.account = Account(self)
-        self.books = Book.load_all(self)
+        self.books = Book.load(self)
         self.current_book = self.books[-1]
         self.problemset = ProblemSet(self)
         self.uhunt = UHunt(self)
@@ -258,11 +259,16 @@ class Toolbox:
     def command_update(self, *args):
         """
         Download and update data. It includes submission data from
-        account user and statistics for all problems. Book descriptors
-        are downloaded only if they don't exist.
+        account user and statistics for all problems.
         """
-        self.console.print('Retrieving submission data...')
-        self.history.update()
+        self.console.print('Retrieving problem data...')
+        data = self.uhunt.get_problemset()
+        self.problemset = ProblemSet(self, data)
+        self.problemset.save()
+        self.workbench = Workbench(self)
+        if self.account:
+            self.console.print('Retrieving submission data...')
+            self.history.update()
 
     def command_volume(self, *args):
         """
@@ -360,9 +366,10 @@ class Toolbox:
         """
         Submit a solution to online judge. In order to connect to the
         online judge server, a valid account with password is required
-        (see `password`). All submissions and evaluation scores can be
+        (see `user`). All submissions and evaluation scores can be
         checked with the commands `queue` and `check`.
         """
+        assert self.current_problem, 'there is no problem selected'
         self.uva.submit()
 
     def command_check(self, *args):
