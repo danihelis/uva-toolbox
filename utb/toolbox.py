@@ -18,6 +18,7 @@ import inspect
 import json
 import os
 import random
+import ssl
 from collections import OrderedDict
 
 import yaml
@@ -60,6 +61,9 @@ class Toolbox:
         self.history = UserHistory(self)
         self.workbench = Workbench(self)
         self.load_commands()
+
+        if self.get('bypass-ssl-certificate'):
+            ssl._create_default_https_context = ssl._create_unverified_context
 
     @property
     def current_problem(self):
