@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import ssl
 
 import mechanize
 
@@ -52,6 +53,8 @@ class UVa:
                                        self.toolbox.account.user,
                                        end='...\n')
         self.browser = mechanize.Browser()
+        if self.toolbox.get('bypass-ssl-certificate'):
+            self.browser.set_ca_data(context=ssl._create_unverified_context())
         self.browser.set_handle_robots(False)
         self.browser.open(self.url)
         try:

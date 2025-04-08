@@ -34,6 +34,8 @@ DEFAULT_SETTINGS = {
         'c',  # {'c', 'c99', 'cpp', 'python', 'java', 'pascal'}
     'use-volume-in-solution-dir':
         True,
+    'bypass-ssl-certificate':
+        False,
 
     # Hacks
     'force-cpp-on-ansi-c':
