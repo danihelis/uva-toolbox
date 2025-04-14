@@ -148,7 +148,7 @@ class Problem:
                                        '  Level ',
                                        self.DIFFICULTY[self.level],
                                        sep='')
-        if self.toolbox.get('no-spoiler'):
+        if not self.history.accepted and self.toolbox.get('no-spoiler'):
             chapters = OrderedDict(
                 (to_roman(c.book), None)
                 for c, _ in sorted(self.chapters, key=lambda t: t[0].book))
