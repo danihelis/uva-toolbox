@@ -18,9 +18,10 @@ import json
 import math
 import os
 import urllib
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
 
 from .submission import History
+from .utils import to_roman
 
 
 class Problem:
@@ -147,10 +148,25 @@ class Problem:
                                        '  Level ',
                                        self.DIFFICULTY[self.level],
                                        sep='')
-        for chapter, star in sorted(self.chapters, key=lambda t: t[0].book):
-            self.toolbox.console.print('*' if star else ' ', bold=True, end=' ')
-            chapter.print_name(with_parent=True, width=78)
-            self.toolbox.console.print()
+        if self.toolbox.get('no-spoiler'):
+            chapters = OrderedDict(
+                (to_roman(c.book), None)
+                for c, _ in sorted(self.chapters, key=lambda t: t[0].book))
+            chapters = ', '.join(chapters.keys())
+            if chapters:
+                plural = ',' in chapters
+                if plural:
+                    pos = chapters.rindex(',')
+                    chapters = chapters[:pos] + ' and' + chapters[pos + 1:]
+                self.toolbox.console.print(
+                    'Present on book{}'.format('s' if plural else ''), chapters)
+        else:
+            for chapter, star in sorted(self.chapters, key=lambda t: t[0].book):
+                self.toolbox.console.print('*' if star else ' ',
+                                           bold=True,
+                                           end=' ')
+                chapter.print_name(with_parent=True, width=78)
+                self.toolbox.console.print()
 
     @property
     def filename(self):

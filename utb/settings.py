@@ -36,6 +36,8 @@ DEFAULT_SETTINGS = {
         True,
     'bypass-ssl-certificate':
         False,
+    'no-spoiler':
+        False,
 
     # Hacks
     'force-cpp-on-ansi-c':
