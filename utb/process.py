@@ -16,6 +16,7 @@
 
 import os
 import shlex
+import signal
 import subprocess
 
 
@@ -47,16 +48,16 @@ class Process:
             self.toolbox.console.alternate('Executing', command)
         output = subprocess.PIPE if echo else subprocess.DEVNULL
         try:
-            process = subprocess.run(command,
-                                     shell=shell,
-                                     check=False,
-                                     stdout=output,
-                                     stderr=subprocess.STDOUT,
-                                     text=True,
-                                     cwd=dir,
-                                     timeout=timeout)
+            process = subprocess.Popen(command,
+                                       shell=shell,
+                                       stdout=output,
+                                       stderr=subprocess.STDOUT,
+                                       text=True,
+                                       cwd=dir,
+                                       preexec_fn=os.setsid)
+            process.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            process.kill()
+            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
             if echo:
                 self.toolbox.console.print('Timeout expired')
             return -1
