@@ -55,15 +55,15 @@ class Process:
                                        text=True,
                                        cwd=dir,
                                        preexec_fn=os.setsid)
-            process.communicate(timeout=timeout)
+            output, errors = process.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
             os.killpg(os.getpgid(process.pid), signal.SIGKILL)
             if echo:
                 self.toolbox.console.print('Timeout expired')
             return -1
         if echo:
-            if process.stdout:
-                self.toolbox.console.write(process.stdout)
+            if output:
+                self.toolbox.console.write(output)
             if process.returncode == 0:
                 self.toolbox.console.print('Success', bold=True)
             else:
